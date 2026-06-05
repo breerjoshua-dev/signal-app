@@ -1,0 +1,4702 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Signal</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230a0e1a'/%3E%3Ctext y='.9em' x='12' font-size='88' font-family='Georgia,serif' font-weight='800' fill='%234f8ef7'%3ES%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --bg:            #0a0e1a;
+  --surface:       #111827;
+  --surface-2:     #1a2332;
+  --surface-3:     #1e2d42;
+  --ink:           #f0f4ff;
+  --ink-soft:      #c8d4e8;
+  --muted:         #7a90b0;
+  --rule:          #1e2d42;
+  --accent:        #4f8ef7;
+  --gold:          #f0b429;
+  --success:       #34d399;
+  --danger:        #f87171;
+  --accent-dim:    rgba(79,142,247,0.10);
+  --accent-border: rgba(79,142,247,0.28);
+  --shadow:        0 4px 24px rgba(0,0,0,0.45);
+  --shadow-lg:     0 12px 48px rgba(0,0,0,0.6);
+  --serif:         'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:          'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius:        16px;
+  --radius-sm:     12px;
+  --radius-xs:     8px;
+  --transition:    0.2s ease;
+}
+
+/* ── Light theme overrides ───────────────────────────────────── */
+html.theme-light {
+  --bg:            #f4f0e8;
+  --surface:       #faf7f2;
+  --surface-2:     #ede9e0;
+  --surface-3:     #e0dbd0;
+  --ink:           #1a1612;
+  --ink-soft:      #2e2a24;
+  --muted:         #7a7468;
+  --muted-soft:    #a09890;
+  --rule:          #d8d2c4;
+  --accent:        #2563eb;
+  --gold:          #b45309;
+  --success:       #15803d;
+  --accent-dim:    rgba(37,99,235,0.08);
+  --accent-border: rgba(37,99,235,0.25);
+  --shadow:        0 4px 24px rgba(0,0,0,0.12);
+  --shadow-lg:     0 12px 48px rgba(0,0,0,0.18);
+}
+
+/* Smooth theme transition — applied to html so all vars animate */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light mode body background */
+html.theme-light body {
+  background: linear-gradient(135deg, #f4f0e8 0%, #ede8df 100%);
+}
+
+html.theme-light .app-header {
+  background: rgba(250,247,242,0.96);
+  border-bottom-color: #d8d2c4;
+}
+
+html.theme-light #section-nav-bar {
+  background: #faf7f2;
+  border-right-color: #d8d2c4;
+}
+
+/* ── Theme toggle component ──────────────────────────────────── */
+.theme-toggle-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition);
+  flex-shrink: 0;
+}
+.theme-toggle-btn:hover { color: var(--ink); }
+.theme-toggle-btn svg   { width: 18px; height: 18px; display: block; }
+
+/* Profile inline toggle switch */
+.profile-theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.profile-theme-label {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.theme-switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.theme-switch-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--surface-3);
+  border: 1px solid var(--rule);
+  transition: background 0.25s ease;
+  cursor: pointer;
+}
+.theme-switch input:checked + .theme-switch-track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.theme-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: transform 0.25s ease, background 0.25s ease;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+.theme-switch input:checked ~ .theme-switch-thumb {
+  transform: translateX(24px);
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { height: 100%; }
+
+body {
+  background: linear-gradient(135deg, #0a0e1a 0%, #0d1526 100%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: var(--accent); }
+button { font-family: var(--sans); }
+
+/* ============================================================
+   ONBOARDING — SHELL
+   ============================================================ */
+#onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: linear-gradient(135deg, #0a0e1a 0%, #0d1526 100%);
+  overflow: hidden;
+  transition: opacity 0.5s ease;
+}
+
+#onboarding.fade-out { opacity: 0; pointer-events: none; }
+#onboarding.hidden   { display: none; }
+
+/* Progress bar */
+.ob-progress {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--surface-3);
+  z-index: 10;
+}
+.ob-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
+  width: 0%;
+}
+
+/* Back button */
+.ob-back {
+  position: absolute;
+  top: 20px; left: 20px;
+  z-index: 10;
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--radius-xs);
+  transition: color var(--transition), background var(--transition);
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ob-back.visible        { opacity: 1; pointer-events: auto; }
+.ob-back:hover          { color: var(--ink); background: var(--surface-2); }
+
+/* Steps container */
+.ob-steps {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Individual step */
+.ob-step {
+  position: absolute;
+  inset: 0;
+  display: none;           /* hidden by default — JS controls show/hide */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px 60px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* transition applied inline by JS so reflow fires correctly */
+}
+
+.ob-step-inner {
+  width: 100%;
+  max-width: 540px;
+}
+
+/* Step text */
+.ob-question {
+  font-family: var(--serif);
+  font-size: clamp(26px, 5vw, 38px);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+.ob-subtext {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 32px;
+}
+.ob-subtext strong { color: var(--ink-soft); font-weight: 500; }
+
+/* Name input */
+.ob-input {
+  width: 100%;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--surface-3);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  caret-color: var(--accent);
+}
+.ob-input::placeholder        { color: #2d3f5a; }
+.ob-input:focus               { border-color: var(--accent-border); box-shadow: 0 0 0 3px var(--accent-dim); }
+
+/* Confirm flash */
+.ob-confirm {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 500;
+  margin-top: 10px;
+  min-height: 20px;
+  letter-spacing: 0.01em;
+}
+
+/* Identity grid — 2 columns, 4 rows, always balanced */
+.ob-identity-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+/* multi-selected state for identity cards */
+.ob-identity-card.multi-selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--ink);
+}
+.ob-identity-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 16px;
+  background: var(--surface);
+  border: 1px solid var(--surface-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  user-select: none;
+}
+.ob-identity-card:hover   { border-color: var(--accent-border); background: var(--surface-2); }
+.ob-identity-card.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--ink); }
+.ob-identity-card .card-icon { font-size: 20px; flex-shrink: 0; }
+
+/* Interests grid — exactly 3 columns = 7 clean rows for 21 items */
+.ob-interests-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.ob-interest-card {
+  padding: 13px 14px;
+  background: var(--surface);
+  border: 1px solid var(--surface-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  user-select: none;
+  text-align: left;
+  line-height: 1.35;
+}
+.ob-interest-card:hover    { border-color: var(--accent-border); background: var(--surface-2); }
+.ob-interest-card.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--ink); }
+
+/* Selection preview strip */
+.ob-selection-preview {
+  margin-top: 16px;
+  padding: 13px 16px;
+  background: var(--surface);
+  border: 1px solid var(--surface-3);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 46px;
+  transition: border-color var(--transition);
+}
+.ob-selection-preview.has-items { border-color: var(--accent-border); color: var(--ink-soft); }
+.ob-selection-preview .preview-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+/* Single-select options */
+.ob-options { display: flex; flex-direction: column; gap: 10px; }
+.ob-option {
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--surface-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  user-select: none;
+}
+.ob-option:hover    { border-color: var(--accent-border); background: var(--surface-2); }
+.ob-option.selected { border-color: var(--accent); background: var(--accent-dim); }
+.ob-option-title    { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+.ob-option-desc     { font-size: 13px; color: var(--muted); }
+
+/* Multi-select schedule options (same visual as ob-option) */
+.ob-option.multi-selected { border-color: var(--accent); background: var(--accent-dim); }
+
+/* CTA button */
+.ob-cta {
+  appearance: none;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 17px 40px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  width: 100%;
+  margin-top: 24px;
+  transition: opacity var(--transition), transform 0.1s ease;
+  letter-spacing: 0.01em;
+}
+.ob-cta:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.ob-cta:active:not(:disabled){ transform: translateY(0); }
+.ob-cta:disabled              { opacity: 0.3; cursor: not-allowed; }
+
+/* Min-select note */
+.ob-min-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 10px;
+  text-align: center;
+}
+.ob-min-note.met { color: var(--success); }
+
+/* ============================================================
+   ONBOARDING — STEP 1 (WELCOME)
+   ============================================================ */
+.step1-wrap {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.step1-wordmark {
+  font-family: var(--serif);
+  font-size: clamp(72px, 16vw, 110px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 18px;
+}
+.step1-wordmark .dot { color: var(--accent); }
+
+.step1-tagline {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(16px, 3vw, 21px);
+  color: var(--muted);
+  margin-bottom: 52px;
+}
+
+.step1-begin {
+  appearance: none;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 17px 52px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.step1-begin:hover {
+  background: rgba(79,142,247,0.18);
+  border-color: var(--accent);
+}
+
+/* ============================================================
+   ONBOARDING — STEP 8 (PREVIEW)
+   ============================================================ */
+.ob-preview-loading {
+  text-align: center;
+  padding: 20px 0 40px;
+}
+.ob-preview-loading .loading-title {
+  font-family: var(--serif);
+  font-size: clamp(22px, 4vw, 34px);
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+.ob-preview-loading .loading-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 36px;
+}
+
+.interest-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 36px;
+}
+.interest-tag {
+  padding: 6px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--surface-3);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  opacity: 0;
+  transform: translateY(6px);
+  animation: tagIn 0.4s ease forwards;
+}
+.interest-tag.lit {
+  border-color: var(--accent-border);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+@keyframes tagIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dot-loader {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+}
+.dot-loader span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.25;
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+.dot-loader span:nth-child(2) { animation-delay: 0.18s; }
+.dot-loader span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes dotPulse {
+  0%,80%,100% { opacity: 0.25; transform: scale(1); }
+  40%          { opacity: 1;    transform: scale(1.35); }
+}
+
+/* Preview result card */
+.ob-preview-result {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.ob-preview-result.visible { opacity: 1; transform: none; }
+
+.preview-masthead {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.preview-edition-label {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.preview-wordmark {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.preview-wordmark .dot { color: var(--accent); }
+.preview-for {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.preview-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.preview-section-head {
+  border-top: 2px solid var(--accent);
+  padding-top: 10px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.preview-section-num {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+.preview-section-name {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.preview-lede {
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  padding-left: 16px;
+  border-left: 3px solid var(--accent);
+  margin-bottom: 20px;
+}
+.preview-hl-label {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.preview-hls { list-style: none; }
+.preview-hls li {
+  display: flex;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+.preview-hls li:first-child { border-top: 1px solid var(--rule); }
+.preview-hl-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  padding-top: 2px;
+  flex-shrink: 0;
+  width: 18px;
+}
+
+.preview-more-strip {
+  padding: 16px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+.preview-more-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.preview-topic-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+.preview-topic-badge {
+  padding: 4px 12px;
+  background: var(--surface-3);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.preview-continue-btn {
+  appearance: none;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 17px 40px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+  transition: opacity var(--transition), transform 0.1s ease;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease 0.3s, transform 0.4s ease 0.3s, background 0.15s ease;
+}
+.preview-continue-btn.visible { opacity: 1; transform: none; }
+.preview-continue-btn:hover { opacity: 0.88; }
+
+/* ============================================================
+   PAYWALL OVERLAY
+   ============================================================ */
+#paywall-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(7,10,20,0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+#paywall-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.paywall-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-3);
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+  padding: 28px 28px 52px;
+  max-width: 580px;
+  width: 100%;
+  box-shadow: 0 -10px 50px rgba(0,0,0,0.65);
+  transform: translateY(100%);
+  transition: transform 0.52s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+  max-height: 95vh;
+}
+#paywall-overlay.visible .paywall-card { transform: translateY(0); }
+
+.paywall-pill {
+  width: 36px; height: 4px;
+  background: var(--surface-3);
+  border-radius: 999px;
+  margin: 0 auto 24px;
+}
+
+.paywall-headline {
+  font-family: var(--serif);
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.paywall-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 22px;
+}
+.paywall-sub .topics-list { color: var(--ink-soft); font-weight: 500; }
+
+/* Trial toggle */
+.paywall-trial-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+  cursor: pointer;
+  user-select: none;
+}
+.paywall-trial-row input[type="checkbox"] {
+  width: 18px; height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.paywall-trial-label  { font-size: 14px; font-weight: 600; color: var(--ink); }
+.paywall-trial-sub    { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+/* Tiers */
+.paywall-tiers {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.paywall-tier {
+  background: var(--surface-2);
+  border: 1px solid var(--surface-3);
+  border-radius: var(--radius-sm);
+  padding: 16px 13px;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  position: relative;
+  user-select: none;
+}
+.paywall-tier:hover         { border-color: var(--accent-border); }
+.paywall-tier.selected      { border-color: var(--accent); }
+.paywall-tier.featured      { background: var(--accent-dim); border-color: var(--accent-border); }
+.paywall-tier.featured.selected { border-color: var(--accent); }
+
+.paywall-tier-badge {
+  position: absolute;
+  top: -10px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.paywall-tier-name {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.paywall-tier-savings {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.paywall-tier-price {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.paywall-tier-period {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.paywall-tier-features {
+  list-style: none;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.9;
+}
+
+/* Paywall CTA */
+.paywall-cta {
+  appearance: none;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 18px 40px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 10px;
+  transition: opacity var(--transition), transform 0.1s ease;
+  letter-spacing: 0.01em;
+}
+.paywall-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+
+.paywall-fine-print {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Completion card */
+.paywall-completion {
+  text-align: center;
+  padding: 8px 0 28px;
+}
+.paywall-check-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(52,211,153,0.12);
+  border: 2px solid var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  font-size: 24px;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.paywall-check-circle.in { opacity: 1; transform: scale(1); }
+.paywall-completion-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease 0.25s, transform 0.4s ease 0.25s;
+}
+.paywall-completion-title.in { opacity: 1; transform: none; }
+.paywall-completion-sub {
+  font-size: 13px;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 0.4s ease 0.4s;
+}
+.paywall-completion-sub.in { opacity: 1; }
+
+/* Pricing block — slides up after completion animation */
+.paywall-pricing-block {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.paywall-pricing-block.in { opacity: 1; transform: none; }
+
+/* Testimonials */
+.paywall-testimonials {
+  border-top: 1px solid var(--rule);
+  padding-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.paywall-testimonial-card {
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+.paywall-testimonial-stars {
+  color: var(--gold);
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.paywall-testimonial-quote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+.paywall-testimonial-author {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* ── Share button ────────────────────────────────────────────── */
+.section-share-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  transition: color var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.section-share-btn:hover { color: var(--ink-soft); }
+.section-share-btn.copied { color: var(--success); }
+
+/* ── Signal Noticed card ─────────────────────────────────────── */
+.signal-noticed-card {
+  background: var(--surface-2);
+  border: 1px solid var(--accent-border);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 36px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.signal-noticed-card.shown { opacity: 1; transform: none; }
+.signal-noticed-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.signal-noticed-text {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+/* ── Left sidebar section navigation ────────────────────────── */
+/* ── Left sidebar — always position:fixed; visibility controlled by JS ── */
+#section-nav-bar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 200px;
+  height: calc(100vh - 60px);
+  background: var(--surface);
+  border-right: 1px solid var(--rule);
+  padding: 24px 0;
+  z-index: 100;
+  overflow-y: auto;
+  scrollbar-width: none;
+  /* NO display:none here — JS sets display explicitly */
+}
+#section-nav-bar::-webkit-scrollbar { display: none; }
+
+.section-nav-inner { display: flex; flex-direction: column; gap: 0; }
+
+.section-nav-pill {
+  appearance: none;
+  border: none;
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--sans);
+  text-align: left;
+  padding: 12px 20px;
+  width: 100%;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  line-height: 1.35;
+}
+.section-nav-pill:hover { color: var(--ink-soft); background: var(--surface-2); }
+.section-nav-pill.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-dim);
+  font-weight: 600;
+}
+
+/* Shift main content right when sidebar is visible */
+.app-content.has-sidebar { margin-left: 200px; }
+
+/* Mobile pill row (shown on small screens instead of sidebar) */
+.section-nav-pills-mobile {
+  display: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 10px 0 8px;
+  margin-bottom: 8px;
+}
+.section-nav-pills-mobile::-webkit-scrollbar { display: none; }
+.section-nav-pills-mobile-inner {
+  display: flex;
+  gap: 7px;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+.section-pill-mobile {
+  appearance: none;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--sans);
+  letter-spacing: 0.06em;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+  white-space: nowrap;
+}
+.section-pill-mobile.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* responsive rules consolidated below — see end of stylesheet */
+
+/* ── Section lede image ──────────────────────────────────────── */
+ol.headlines li { align-items: flex-start; }
+.section-lede-image-wrap { margin-bottom: 20px; }
+.section-lede-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+.section-lede-image-credit {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Streak pill in header ───────────────────────────────────── */
+.streak-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(240,180,41,0.12);
+  border: 1px solid rgba(240,180,41,0.3);
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--sans);
+  white-space: nowrap;
+}
+
+/* ── Toast notification ──────────────────────────────────────── */
+.signal-toast {
+  position: fixed;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: var(--surface);
+  border: 1px solid rgba(240,180,41,0.4);
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sans);
+  padding: 10px 20px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.signal-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Saved stories bookmark ──────────────────────────────────── */
+ol.headlines li {
+  position: relative;
+}
+.hl-bookmark {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 0 0 8px;
+  line-height: 1;
+  flex-shrink: 0;
+  font-size: 16px;
+  transition: color var(--transition);
+  align-self: flex-start;
+  padding-top: 2px;
+}
+.hl-bookmark:hover           { color: var(--ink-soft); }
+.hl-bookmark.saved           { color: var(--accent); }
+
+/* ── Saved story card in profile ─────────────────────────────── */
+.saved-story-card {
+  padding: 14px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.saved-story-body { flex: 1; min-width: 0; }
+.saved-story-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.4;
+  margin-bottom: 6px;
+  text-decoration: none;
+  display: block;
+}
+.saved-story-title:hover { color: var(--accent); }
+.saved-story-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.saved-story-src {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 2px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+.saved-story-section {
+  font-size: 11px;
+  color: var(--muted);
+}
+.saved-story-remove {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color var(--transition);
+}
+.saved-story-remove:hover { color: var(--danger); }
+
+/* ── Profile view ─────────────────────────────────────────────── */
+#profile-view { display: none; }
+#profile-view.visible { display: block; }
+
+.profile-section {
+  margin-bottom: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--rule);
+}
+.profile-section:last-child { border-bottom: none; }
+
+.profile-section-label {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.profile-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.profile-name-display {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.profile-edit-btn {
+  appearance: none;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: color var(--transition), border-color var(--transition);
+  flex-shrink: 0;
+}
+.profile-edit-btn:hover { color: var(--ink); border-color: var(--accent-border); }
+
+.profile-identity-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+.profile-identity-tag {
+  padding: 5px 13px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.profile-interest-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.profile-interest-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.profile-chip-remove {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition);
+}
+.profile-chip-remove:hover { color: var(--danger); }
+
+.profile-pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.profile-pref-row:last-child { border-bottom: none; }
+.profile-pref-label { font-size: 13px; color: var(--muted); }
+.profile-pref-value { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+
+/* Plan section */
+.profile-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.profile-plan-badge.free { background: var(--surface-2); color: var(--muted); border: 1px solid var(--rule); }
+.profile-plan-badge.pro  { background: rgba(240,180,41,0.12); color: var(--gold); border: 1px solid rgba(240,180,41,0.3); }
+.profile-plan-badge.trial { background: rgba(79,142,247,0.12); color: var(--accent); border: 1px solid var(--accent-border); }
+
+.profile-plan-features {
+  list-style: none;
+  margin-bottom: 20px;
+}
+.profile-plan-features li {
+  font-size: 13px;
+  color: var(--ink-soft);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.profile-plan-features li::before {
+  content: '✓';
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.profile-plan-features li:last-child { border-bottom: none; }
+
+.profile-upgrade-btn {
+  appearance: none;
+  border: 1px solid var(--gold);
+  background: rgba(240,180,41,0.1);
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 13px 24px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  width: 100%;
+  font-family: var(--sans);
+  transition: background var(--transition);
+}
+.profile-upgrade-btn:hover { background: rgba(240,180,41,0.18); }
+
+/* Narration section in profile */
+.profile-voice-options { display: flex; flex-direction: column; gap: 10px; }
+.profile-voice-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition);
+  user-select: none;
+}
+.profile-voice-option:hover { border-color: var(--accent-border); }
+.profile-voice-option.selected { border-color: var(--accent); background: var(--accent-dim); }
+.profile-voice-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+.profile-voice-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.profile-voice-check { color: var(--accent); font-size: 16px; opacity: 0; }
+.profile-voice-option.selected .profile-voice-check { opacity: 1; }
+
+/* Inline name edit */
+.profile-name-input {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  background: var(--surface-2);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-xs);
+  color: var(--ink);
+  padding: 6px 12px;
+  outline: none;
+  width: 100%;
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+/* Interest picker modal (for Profile "Add more") */
+.interest-picker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.interest-picker-sheet {
+  background: var(--surface);
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+  padding: 24px 24px 48px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.interest-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.interest-picker-title { font-family: var(--serif); font-size: 20px; font-weight: 700; }
+.interest-picker-close {
+  appearance: none; border: none; background: transparent;
+  color: var(--muted); font-size: 22px; cursor: pointer;
+  padding: 4px 8px; border-radius: var(--radius-xs);
+}
+.interest-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.interest-picker-item {
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  text-align: left;
+  line-height: 1.3;
+  font-family: var(--sans);
+}
+.interest-picker-item:hover { border-color: var(--accent-border); background: var(--surface-3); }
+.interest-picker-item.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--ink); }
+
+/* ============================================================
+   MAIN APP — HEADER
+   ============================================================ */
+#app { display: none; min-height: 100vh; }
+#app.visible { display: block; }
+
+.app-header {
+  border-bottom: 1px solid var(--rule);
+  background: rgba(10,14,26,0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.app-header-inner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 var(--content-pad);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  gap: 16px;
+}
+.app-wordmark {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+}
+.app-wordmark .dot { color: var(--accent); }
+
+.app-nav {
+  display: flex;
+  gap: 3px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 3px;
+}
+.app-nav-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+.app-nav-btn.active { color: var(--ink); background: var(--surface-2); }
+
+.app-settings-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 17px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: var(--radius-xs);
+  transition: color var(--transition);
+  flex-shrink: 0;
+}
+.app-settings-btn:hover { color: var(--ink); }
+
+/* ============================================================
+   MAIN APP — CONTENT AREA
+   ============================================================ */
+.app-content {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 44px var(--content-pad) 96px;
+}
+
+/* Masthead */
+.masthead {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.masthead-kicker {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.masthead-title {
+  font-family: var(--serif);
+  font-size: clamp(26px, 5vw, 42px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+.masthead-meta {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.masthead-meta .sep {
+  width: 3px; height: 3px;
+  background: var(--surface-3);
+  border-radius: 50%;
+  display: inline-block;
+}
+.masthead-rule {
+  width: 48px;
+  border: none;
+  border-top: 2px solid var(--accent);
+  margin: 20px auto 0;
+}
+
+/* Briefing controls */
+.briefing-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.mode-toggle {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 3px;
+}
+.mode-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+.mode-btn.active { color: var(--ink); background: var(--surface-2); }
+
+.generate-btn {
+  appearance: none;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity var(--transition), transform 0.1s ease;
+}
+.generate-btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+.generate-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+/* Audio bar */
+.audio-wrap { display: none; margin-bottom: 28px; }
+.audio-wrap.visible { display: block; }
+.audio-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+.audio-btn {
+  appearance: none;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 7px 14px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+.audio-btn:hover { border-color: var(--accent-border); color: var(--ink); }
+.audio-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.voice-select {
+  border: 1px solid var(--rule);
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-family: var(--sans);
+  padding: 6px 10px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  max-width: 240px;
+  outline: none;
+}
+.voice-hint {
+  margin-top: 10px;
+  padding: 0 4px;
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.voice-hint a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted currentColor; }
+.voice-hint-dismiss {
+  appearance: none; border: none; background: transparent;
+  color: var(--accent); font-size: inherit; cursor: pointer;
+  border-bottom: 1px dotted currentColor; padding: 0;
+  font-family: var(--sans);
+}
+
+/* States */
+.state-empty {
+  text-align: center;
+  padding: 64px 0 32px;
+  color: var(--muted);
+}
+.state-empty p {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 19px;
+  max-width: 38ch;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.state-loading {
+  display: none;
+  text-align: center;
+  padding: 28px 0;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.state-loading.visible { display: block; }
+
+.loading-dots::after {
+  content: '';
+  display: inline-block;
+  width: 1.4em;
+  text-align: left;
+  animation: ldots 1.4s steps(4, end) infinite;
+}
+@keyframes ldots {
+  0%,20%       { content: ''; }
+  40%          { content: '.'; }
+  60%          { content: '..'; }
+  80%,100%     { content: '...'; }
+}
+
+.errbox {
+  display: none;
+  background: var(--surface);
+  border: 1px solid rgba(248,113,113,0.3);
+  color: var(--ink-soft);
+  padding: 13px 16px;
+  border-radius: var(--radius-xs);
+  font-size: 13px;
+  margin-bottom: 22px;
+  line-height: 1.5;
+}
+.errbox.visible { display: block; }
+
+/* ============================================================
+   STORY SECTIONS (BRIEFING VIEW)
+   ============================================================ */
+#briefing-content .story-section {
+  margin-bottom: 52px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+#briefing-content .story-section.shown { opacity: 1; transform: none; }
+
+.section-head {
+  border-top: 2px solid var(--accent);
+  padding-top: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.section-num {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.section-name {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.section-lede {
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  padding-left: 18px;
+  border-left: 3px solid var(--accent);
+  margin-bottom: 24px;
+}
+.section-lede.placeholder {
+  color: var(--muted);
+  font-style: italic;
+  border-left-color: var(--surface-3);
+}
+.section-lede.speaking {
+  background: linear-gradient(transparent 60%, var(--accent-dim) 60%);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+}
+
+.headlines-label {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+ol.headlines {
+  list-style: none;
+  counter-reset: hl;
+}
+ol.headlines li {
+  counter-increment: hl;
+  border-bottom: 1px solid var(--rule);
+  padding: 13px 0;
+  display: grid;
+  grid-template-columns: 26px 1fr 24px;
+  column-gap: 12px;
+  align-items: start;
+}
+ol.headlines li:first-child { border-top: 1px solid var(--rule); }
+ol.headlines li::before {
+  content: counter(hl, decimal-leading-zero);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  padding-top: 3px;
+}
+ol.headlines a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 15px;
+  line-height: 1.4;
+  display: block;
+  transition: color var(--transition);
+}
+ol.headlines a:hover { color: var(--ink); }
+ol.headlines .hl-title { display: block; margin-bottom: 4px; }
+ol.headlines .hl-src {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+.section-ornament {
+  text-align: center;
+  color: var(--surface-3);
+  letter-spacing: 0.5em;
+  font-size: 14px;
+  margin: 0 0 52px;
+}
+
+/* ============================================================
+   EXPLORE VIEW
+   ============================================================ */
+#explore-view { display: none; }
+#explore-view.visible { display: block; }
+
+.explore-header {
+  margin-bottom: 36px;
+}
+.explore-header h2 {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.explore-header p { color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+.explore-block-label {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Suggested cards */
+.explore-suggested-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+  margin-bottom: 36px;
+}
+.explore-topic-card {
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.explore-topic-card:hover           { border-color: var(--accent-border); background: var(--surface-2); }
+.explore-topic-card.loading-topic   { opacity: 0.6; pointer-events: none; }
+
+.explore-card-name { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+.explore-card-desc { font-size: 12px; color: var(--muted); line-height: 1.45; margin-bottom: 10px; }
+.explore-card-cta  {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* All topics list */
+.explore-all-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+  margin-bottom: 36px;
+}
+.explore-all-item {
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.explore-all-item:hover               { border-color: var(--accent-border); color: var(--ink); }
+.explore-all-item.in-signal           { color: var(--muted); cursor: default; border-color: var(--rule); }
+.explore-all-item.in-signal:hover     { border-color: var(--rule); color: var(--muted); }
+.in-signal-chip {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* Explore result area */
+.explore-result {
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--rule);
+}
+.explore-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.explore-result-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.explore-add-btn {
+  appearance: none;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 9px 18px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.explore-add-btn:hover { background: rgba(79,142,247,0.18); border-color: var(--accent); }
+.explore-add-btn.added { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.3); color: var(--success); cursor: default; }
+
+/* ============================================================
+   SETTINGS MODAL
+   ============================================================ */
+.settings-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.settings-modal.visible { display: flex; }
+
+.settings-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-3);
+  border-radius: var(--radius);
+  padding: 28px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+.settings-card h3 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+.settings-muted { color: var(--muted); font-size: 13px; line-height: 1.55; margin-bottom: 18px; }
+
+.settings-field { display: block; margin-bottom: 12px; }
+.settings-field-label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.settings-field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.settings-field input:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.settings-hint { font-size: 12px; color: var(--muted); line-height: 1.55; margin-bottom: 20px; }
+.settings-hint a { color: var(--accent); }
+
+.settings-actions { display: flex; justify-content: space-between; gap: 10px; }
+.settings-close-x {
+  position: absolute;
+  top: 12px; right: 14px;
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  transition: color var(--transition), background var(--transition);
+}
+.settings-close-x:hover { color: var(--ink); background: var(--surface-2); }
+
+.small-btn {
+  appearance: none;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: border-color var(--transition);
+  font-family: var(--sans);
+}
+.small-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.small-btn:hover       { border-color: var(--accent-border); }
+.small-btn.primary:hover { opacity: 0.85; }
+
+.saved-flash {
+  position: absolute;
+  bottom: 28px; left: 28px;
+  font-size: 12px;
+  color: var(--success);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.saved-flash.show { opacity: 1; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.app-footer {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px 28px;
+  border-top: 1px solid var(--rule);
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+/* responsive rules consolidated below — see end of stylesheet */
+
+/* ============================================================
+   RESPONSIVE SYSTEM
+   Desktop  : 1024px+   — sidebar, 860px content, 48px padding
+   Tablet   : 768–1023px — no sidebar, pill row, 720px, 32px
+   Mobile   : <768px    — full width, 20px padding, stacked
+   ============================================================ */
+
+/* ── Spacing tokens (override per breakpoint) ── */
+:root {
+  --content-max:   860px;
+  --content-pad:   48px;
+  --section-head:  28px;
+  --lede-size:     18px;
+  --ob-question:   clamp(26px, 5vw, 38px);
+}
+
+/* ── Desktop base (1024px+) ── */
+.app-content             { max-width: var(--content-max); padding: 44px var(--content-pad) 96px; }
+.app-header-inner        { max-width: var(--content-max); padding: 0 var(--content-pad); }
+.section-name            { font-size: var(--section-head); }
+.section-lede            { font-size: var(--lede-size); }
+
+/* ── Tablet (768px – 1023px) ── */
+@media (max-width: 1023px) {
+  :root {
+    --content-max: 720px;
+    --content-pad: 32px;
+    --section-head: 26px;
+    --lede-size: 17px;
+  }
+  /* Hide sidebar, show mobile pill row */
+  #section-nav-bar                    { display: none !important; }
+  .app-content.has-sidebar            { margin-left: 0; }
+  .section-nav-pills-mobile           { display: block; }
+  /* Paywall tiers stay 3-col until mobile */
+  .paywall-tiers                      { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── Mobile (<768px) ── */
+@media (max-width: 767px) {
+  :root {
+    --content-max: 100%;
+    --content-pad: 20px;
+    --section-head: 22px;
+    --lede-size:    16px;
+    --ob-question:  28px;
+  }
+
+  /* Header */
+  .app-header-inner { padding: 0 16px; height: 56px; }
+  .app-wordmark     { font-size: 20px; }
+  .app-nav-btn      { padding: 7px 12px; font-size: 10px; }
+  .streak-pill      { display: none; } /* save space on mobile */
+
+  /* Onboarding */
+  .ob-step                { padding: 70px 20px 48px; }
+  .ob-question            { font-size: var(--ob-question); }
+  .step1-wordmark         { font-size: 72px; }
+  .ob-identity-grid       { grid-template-columns: 1fr; }
+  .ob-interests-grid      { grid-template-columns: repeat(2, 1fr); }
+  .ob-interest-card       { font-size: 12px; padding: 11px 12px; }
+  .ob-back                { top: 14px; left: 14px; min-height: 44px; min-width: 44px; }
+
+  /* Paywall */
+  .paywall-card           { padding: 20px 16px 44px; border-radius: var(--radius) var(--radius) 0 0; }
+  .paywall-tiers          { grid-template-columns: 1fr; gap: 8px; }
+  .paywall-testimonials   { grid-template-columns: 1fr; }
+  .paywall-headline       { font-size: 20px; }
+
+  /* Briefing */
+  .app-content            { padding: 28px var(--content-pad) 80px; }
+  .masthead-title         { font-size: 22px; }
+  .briefing-controls      { flex-direction: column; align-items: stretch; gap: 10px; }
+  .generate-btn           { text-align: center; width: 100%; }
+  .mode-toggle            { justify-content: center; }
+  .audio-bar              { flex-wrap: wrap; }
+  .audio-btn              { flex: 1; text-align: center; }
+  .section-head           { gap: 8px; flex-wrap: wrap; }
+  .section-share-btn      { margin-left: 0; }
+
+  /* Explore */
+  .explore-suggested-grid { grid-template-columns: 1fr 1fr; }
+  .explore-all-grid       { grid-template-columns: repeat(2, 1fr); }
+
+  /* Profile */
+  .profile-name-row       { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .profile-card           { padding: 16px; }
+  .profile-interest-chips { gap: 6px; }
+
+  /* Interest picker sheet */
+  .interest-picker-grid   { grid-template-columns: repeat(2, 1fr); }
+  .interest-picker-sheet  { padding: 20px 16px 40px; }
+}
+
+/* ── Large desktop (1280px+) — give content more breathing room ── */
+@media (min-width: 1280px) {
+  :root { --content-max: 860px; --content-pad: 56px; }
+  .app-content.has-sidebar { margin-left: 200px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     ONBOARDING
+     ============================================================ -->
+<div id="onboarding">
+  <div class="ob-progress">
+    <div class="ob-progress-fill" id="ob-progress-fill"></div>
+  </div>
+  <button class="ob-back" id="ob-back" aria-label="Go back">← Back</button>
+  <div class="ob-steps" id="ob-steps">
+    <!-- Steps 1–8 injected by JavaScript -->
+  </div>
+</div>
+
+<!-- ============================================================
+     PAYWALL OVERLAY (slides up over Step 8 preview)
+     ============================================================ -->
+<div id="paywall-overlay" role="dialog" aria-modal="true" aria-label="Subscribe to Signal">
+  <!-- Content injected by JavaScript -->
+</div>
+
+<!-- ============================================================
+     MAIN APP
+     ============================================================ -->
+<div id="app">
+
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="app-wordmark">Signal<span class="dot">.</span></div>
+      <nav class="app-nav" role="tablist">
+        <button id="nav-briefing" class="app-nav-btn active" role="tab" aria-selected="true">Briefing</button>
+        <button id="nav-explore"  class="app-nav-btn"        role="tab" aria-selected="false">Explore</button>
+        <button id="nav-profile"  class="app-nav-btn"        role="tab" aria-selected="false">Profile</button>
+      </nav>
+      <div id="streak-pill-wrap" style="display:none">
+        <div class="streak-pill" id="streak-pill"></div>
+      </div>
+      <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle theme" aria-label="Toggle light/dark mode">
+        <!-- Icon injected by JS based on current theme -->
+      </button>
+    </div>
+  </header>
+
+  <!-- Left sidebar section nav — shown after generate, desktop only -->
+  <nav id="section-nav-bar" aria-label="Jump to section">
+    <div class="section-nav-inner" id="section-nav-inner"></div>
+  </nav>
+
+  <main class="app-content" id="app-content">
+
+    <!-- ── BRIEFING VIEW ── -->
+    <div id="briefing-view">
+
+      <header class="masthead">
+        <div class="masthead-kicker">Your Daily Signal</div>
+        <div class="masthead-title" id="masthead-title">Morning Briefing</div>
+        <div class="masthead-meta">
+          <span id="app-edition">Morning Edition</span>
+          <span class="sep"></span>
+          <span id="app-dateline"></span>
+        </div>
+        <hr class="masthead-rule" />
+      </header>
+
+      <!-- Mobile section pills — hidden on desktop, visible on ≤768px -->
+      <div class="section-nav-pills-mobile" id="section-pills-mobile">
+        <div class="section-nav-pills-mobile-inner" id="section-pills-mobile-inner"></div>
+      </div>
+
+      <div class="briefing-controls">
+        <div class="mode-toggle" role="group" aria-label="Edition">
+          <button id="mode-morning"   class="mode-btn active">Morning</button>
+          <button id="mode-afternoon" class="mode-btn">Afternoon</button>
+        </div>
+        <button id="generate-btn" class="generate-btn">Generate</button>
+      </div>
+
+      <div id="audio-wrap" class="audio-wrap" aria-live="polite">
+        <div class="audio-bar">
+          <button id="play-btn"  class="audio-btn">▶ Play</button>
+          <button id="pause-btn" class="audio-btn">⏸ Pause</button>
+          <button id="stop-btn"  class="audio-btn">⏹ Stop</button>
+          <span class="audio-label" style="margin-left:auto">Voice</span>
+          <span id="current-voice-name" style="font-size:12px;color:var(--ink-soft);font-weight:500">Signal Classic</span>
+        </div>
+      </div>
+
+      <div id="errbox" class="errbox" role="alert"></div>
+
+      <div id="state-empty" class="state-empty">
+        <p>Hit Generate for your personalized briefing — curated entirely around your interests.</p>
+      </div>
+
+      <div id="state-loading" class="state-loading" aria-live="polite">
+        <span id="loading-label">Pulling the wires</span><span class="loading-dots"></span>
+      </div>
+
+      <div id="briefing-content"></div>
+
+    </div><!-- /briefing-view -->
+
+    <!-- ── EXPLORE VIEW ── -->
+    <div id="explore-view">
+      <!-- Content injected by JavaScript -->
+    </div>
+
+    <!-- ── PROFILE VIEW ── -->
+    <div id="profile-view">
+      <!-- Content injected by JavaScript -->
+    </div>
+
+  </main>
+
+  <footer class="app-footer">
+    Signal &middot; news from public newswires &middot; commentary by Groq Llama&nbsp;3.3 (or Pollinations) &middot; narrated by Microsoft Edge Neural TTS
+  </footer>
+
+</div><!-- /app -->
+
+<!-- Settings modal removed — API keys managed as constants in code -->
+
+<script>
+(() => {
+'use strict';
+
+/* ============================================================
+   SECTION 1 — CONSTANTS & DATA MODEL
+   ============================================================ */
+
+// ── Storage keys ──────────────────────────────────────────────
+const PROFILE_KEY = 'signal:profile';
+
+// ── API keys — fill in your keys here ─────────────────────────
+const GROQ_KEY   = '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';
+const PEXELS_KEY = 'xauzsNvmVVJCQKdQRJJtRdCLlIIcKb2YglvheHViuzgFmzRzxughIH7h';
+
+// ── RSS / LLM config ──────────────────────────────────────────
+const RSS_PROXY          = 'https://api.rss2json.com/v1/api.json?rss_url=';
+const HEADLINES_PER_SECTION  = 8;
+const HEADLINES_FOR_PROMPT   = 8;
+const POLLINATIONS_URL   = 'https://text.pollinations.ai/openai';
+const POLLINATIONS_MODEL = 'openai';
+const GROQ_URL           = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL         = 'llama-3.3-70b-versatile';
+
+// ── Environment & voice ───────────────────────────────────────
+const IS_HOSTED = window.location.protocol === 'https:';
+const OPENAI_KEY = '';   // fill in for hosted deployment
+const OPENAI_TTS_URL = 'https://api.openai.com/v1/audio/speech';
+
+// 3 curated voices — OpenAI IDs used when hosted, Web Speech label used locally
+const SIGNAL_VOICES = [
+  { id: 'onyx',    label: 'Signal Classic', desc: 'Deep, authoritative male',     webSpeech: 'en-US' },
+  { id: 'nova',    label: 'Signal Clear',   desc: 'Warm, articulate female',      webSpeech: 'en-US' },
+  { id: 'shimmer', label: 'Signal Pro',     desc: 'Crisp, professional female',   webSpeech: 'en-GB' },
+];
+const DEFAULT_SIGNAL_VOICE = 'onyx';
+const SIGNAL_VOICE_KEY     = 'signal:voice';
+
+// ── Onboarding: Identity options ──────────────────────────────
+const IDENTITIES = [
+  { key: 'founder',   label: 'Founder / Entrepreneur', icon: '🚀' },
+  { key: 'finance',   label: 'Finance Professional',   icon: '📊' },
+  { key: 'tech',      label: 'Tech & Product',         icon: '⚡' },
+  { key: 'student',   label: 'Student',                icon: '📚' },
+  { key: 'creative',  label: 'Creative & Culture',     icon: '🎨' },
+  { key: 'investor',  label: 'Investor',               icon: '💼' },
+  { key: 'executive', label: 'Executive / Leader',     icon: '🏛' },
+  { key: 'curious',   label: 'Curious Mind',           icon: '🔭' },
+];
+
+// ── Onboarding: Depth options ─────────────────────────────────
+const DEPTH_OPTIONS = [
+  { key: 'quick',    label: 'Quick hits',          desc: 'Headlines and key context — 5 min' },
+  { key: 'balanced', label: 'Balanced',            desc: 'Context with analysis — 10 min' },
+  { key: 'deep',     label: 'Deep intelligence',   desc: 'Full briefings with perspective — 15+ min' },
+];
+
+// ── Onboarding: Tone options ──────────────────────────────────
+const TONE_OPTIONS = [
+  { key: 'sharp',          label: 'Sharp & Professional',   desc: 'Clear, authoritative, no fluff' },
+  { key: 'conversational', label: 'Smart & Conversational', desc: 'Intelligent but relaxed' },
+  { key: 'bold',           label: 'Bold & Opinionated',     desc: 'Strong takes, editorial voice' },
+];
+
+// ── Onboarding: Schedule options ──────────────────────────────
+const SCHEDULE_OPTIONS = [
+  { key: 'morning', label: 'Morning', desc: '6am – 9am' },
+  { key: 'midday',  label: 'Midday',  desc: '12pm – 2pm' },
+  { key: 'evening', label: 'Evening', desc: '6pm – 9pm' },
+];
+
+// ── Interest → Feed mapping (the core data model) ─────────────
+// Every key becomes a section in the user's personalized Signal.
+// feeds: Google News RSS URLs fetched in parallel and deduped.
+// context: injected into the AI prompt so it knows the domain.
+// desc: shown in the Explore tab card.
+const INTEREST_MAP = {
+  'ai': {
+    label:   'Artificial Intelligence',
+    desc:    'Models, labs, breakthroughs, and the companies shaping the AI era.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=artificial+intelligence&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=openai+anthropic+nvidia+google+gemini&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:wsj.com+AI&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=AI+research+llm+model+agent&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'artificial intelligence, large language models, OpenAI, Anthropic, Google DeepMind, Nvidia, AI research, AI agents',
+  },
+  'markets': {
+    label:   'Financial Markets',
+    desc:    'Equities, macro, the Fed, and what\'s moving markets today.',
+    feeds:   [
+      'https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:wsj.com+markets&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:bloomberg.com+markets&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=S%26P+500+Fed+earnings+interest+rates&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'stock markets, S&P 500, Federal Reserve, earnings, interest rates, bonds, Wall Street, equities',
+  },
+  'venture-capital': {
+    label:   'Startups & Venture Capital',
+    desc:    'Funding rounds, founders, VC firms, and the startup ecosystem.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=startup+funding+venture+capital&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:techcrunch.com+funding&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=VC+investment+round+startup+unicorn&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:axios.com+startups&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'venture capital, startup funding rounds, founder news, VC firms, unicorns, IPOs, seed rounds, Series A B C',
+  },
+  'technology': {
+    label:   'Technology & Innovation',
+    desc:    'Big Tech, consumer gadgets, software, and the companies building the future.',
+    feeds:   [
+      'https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:theverge.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:wired.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=tech+innovation+Apple+Google+Microsoft+Meta&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'technology, software, hardware, consumer tech, Apple, Google, Microsoft, Meta, Amazon, innovation',
+  },
+  'geopolitics': {
+    label:   'Global Politics & Geopolitics',
+    desc:    'International relations, foreign policy, and the forces shaping the world order.',
+    feeds:   [
+      'https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:reuters.com+geopolitics&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=global+politics+foreign+policy+international+relations&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:foreignaffairs.com&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'global politics, international relations, geopolitical tensions, foreign policy, diplomacy, NATO, China, Russia, Middle East',
+  },
+  'business': {
+    label:   'Business Strategy',
+    desc:    'Corporate moves, M&A, CEO decisions, and the strategies shaping industries.',
+    feeds:   [
+      'https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:hbr.org&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=corporate+strategy+CEO+merger+acquisition&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:ft.com+business+strategy&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'business strategy, corporate news, mergers and acquisitions, CEO moves, management, organizational change, Fortune 500',
+  },
+  'crypto': {
+    label:   'Cryptocurrency & Web3',
+    desc:    'Bitcoin, Ethereum, DeFi, regulation, and the digital asset ecosystem.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=cryptocurrency+bitcoin+ethereum&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:coindesk.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=DeFi+Web3+blockchain+crypto&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=crypto+regulation+SEC+stablecoin&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'cryptocurrency, Bitcoin, Ethereum, DeFi, Web3, blockchain, crypto markets, stablecoins, SEC regulation',
+  },
+  'science': {
+    label:   'Science & Research',
+    desc:    'Discoveries, breakthroughs, and the research changing what we know.',
+    feeds:   [
+      'https://news.google.com/rss/headlines/section/topic/SCIENCE?hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=scientific+research+breakthrough+discovery&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:nature.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=space+physics+biology+climate+science&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'scientific research, discoveries, physics, biology, space exploration, medical breakthroughs, climate science',
+  },
+  'culture': {
+    label:   'Culture & Arts',
+    desc:    'Literature, visual arts, ideas, and the cultural moments that matter.',
+    feeds:   [
+      'https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=culture+arts+books+exhibitions+museums&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:nytimes.com+culture&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=cultural+moment+art+literature+society&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'culture, arts, literature, visual arts, museums, cultural moments, society, books, exhibitions',
+  },
+  'sports-business': {
+    label:   'Sports Business',
+    desc:    'Team valuations, athlete deals, media rights, and the money behind sports.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=sports+business+athlete+investment+deal&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=sports+team+valuation+media+rights+league&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:sportico.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=NIL+athlete+brand+endorsement+league+financials&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'sports business, team valuations, athlete brand deals, league economics, media rights, NIL, franchise sales',
+  },
+  'real-estate': {
+    label:   'Real Estate & Property',
+    desc:    'Housing markets, commercial property, development, and where capital is flowing.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=real+estate+property+market&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=housing+market+mortgage+rates+home+prices&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=commercial+real+estate+REIT+office+retail&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=real+estate+development+construction+zoning&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'real estate market, housing prices, mortgage rates, commercial property, REITs, development, zoning',
+  },
+  'energy-climate': {
+    label:   'Energy & Climate',
+    desc:    'Oil, renewables, climate policy, and the energy transition.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=energy+climate+renewable+solar+wind&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=oil+gas+OPEC+energy+transition&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:bloomberg.com+climate+energy&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=climate+policy+net+zero+emissions+COP&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'energy markets, climate change, renewable energy, oil prices, OPEC, energy transition, climate policy, net zero',
+  },
+  'healthcare': {
+    label:   'Healthcare & Biotech',
+    desc:    'Drug approvals, biotech breakthroughs, health policy, and the business of medicine.',
+    feeds:   [
+      'https://news.google.com/rss/headlines/section/topic/HEALTH?hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=biotech+pharma+drug+FDA+approval&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=healthcare+policy+insurance+hospital+system&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:statnews.com&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'healthcare, biotech, pharmaceutical, FDA approvals, medical policy, drug development, health insurance',
+  },
+  'economic-policy': {
+    label:   'Economic Policy',
+    desc:    'The Fed, fiscal policy, trade, inflation, and how governments shape the economy.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=economic+policy+Federal+Reserve+inflation+GDP&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=fiscal+policy+government+spending+tax+policy&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:wsj.com+economy+policy&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=trade+tariff+WTO+economic+growth+recession&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'economic policy, Federal Reserve, inflation, GDP, fiscal policy, trade, tariffs, government spending, recession',
+  },
+  'leadership': {
+    label:   'Leadership & Career',
+    desc:    'How the best operators think, manage, and build — and what\'s changing at work.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=leadership+CEO+management+career+workplace&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:hbr.org+leadership&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=future+of+work+remote+hybrid+workforce&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=executive+strategy+talent+management+culture&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'leadership, management, career development, workplace culture, CEO strategies, talent, future of work',
+  },
+  'philosophy': {
+    label:   'Philosophy & Ideas',
+    desc:    'The ideas, thinkers, and debates shaping how we understand the world.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=philosophy+ideas+ethics+society+thinking&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:aeon.co&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=intellectuals+thinkers+social+theory+debate&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=philosophy+ethics+moral+political+thought&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'philosophy, ideas, ethics, intellectual debates, social theory, thinkers, moral philosophy, political philosophy',
+  },
+  'film': {
+    label:   'Film & Entertainment',
+    desc:    'Box office, streaming wars, Hollywood, and the business of making stories.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=film+movies+box+office+Hollywood&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:variety.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=streaming+Netflix+HBO+Disney+Amazon+television&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=entertainment+industry+studios+awards&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'film, television, streaming, Hollywood, box office, entertainment industry, Netflix, HBO, studios, awards',
+  },
+  'music': {
+    label:   'Music & Media',
+    desc:    'Artists, labels, streaming, the business of sound, and where media is going.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=music+industry+artists+albums+tours&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:rollingstone.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=Spotify+Apple+Music+streaming+record+label&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=podcast+media+publishing+journalism&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'music, music industry, artists, streaming, record labels, media, publishing, podcasting',
+  },
+  'food': {
+    label:   'Food & Hospitality',
+    desc:    'Restaurant culture, food business, culinary movements, and hospitality.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=food+restaurant+hospitality+culinary&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:eater.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=food+business+restaurant+industry+chef&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=hospitality+hotel+travel+food+trends&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'food industry, restaurants, hospitality, culinary trends, food business, chefs, dining',
+  },
+  'fashion': {
+    label:   'Fashion & Design',
+    desc:    'Luxury, streetwear, design culture, and the business of style.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=fashion+design+luxury+brand&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:businessoffashion.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=fashion+week+luxury+market+designer+retail&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=streetwear+sneaker+design+culture+brand&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'fashion, design, luxury brands, fashion industry, trends, retail, streetwear, designer labels',
+  },
+  'personal-finance': {
+    label:   'Personal Finance & Wealth',
+    desc:    'Investing, tax strategy, financial independence, and building personal wealth.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=personal+finance+investing+wealth&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=401k+IRA+retirement+investing+savings&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=financial+independence+FIRE+passive+income&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=tax+strategy+estate+planning+wealth+management&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'personal finance, investing, retirement planning, tax strategy, wealth building, financial independence, budgeting',
+  },
+};
+
+// ── Ordered interest keys — 21 items, 3 columns = 7 clean rows ─
+const INTEREST_KEYS = [
+  'ai',              'markets',        'venture-capital',
+  'technology',      'geopolitics',    'business',
+  'crypto',          'science',        'culture',
+  'sports-business', 'real-estate',    'energy-climate',
+  'healthcare',      'economic-policy','leadership',
+  'philosophy',      'film',           'music',
+  'personal-finance','food',           'fashion',
+];
+
+// ── Adjacent topics (drives Explore "Suggested for you") ─────
+const ADJACENT_TOPICS = {
+  'ai':              ['technology', 'venture-capital', 'science', 'economic-policy'],
+  'markets':         ['economic-policy', 'venture-capital', 'real-estate', 'crypto'],
+  'venture-capital': ['ai', 'markets', 'business', 'technology'],
+  'technology':      ['ai', 'venture-capital', 'business', 'science'],
+  'geopolitics':     ['economic-policy', 'markets', 'energy-climate', 'business'],
+  'business':        ['markets', 'venture-capital', 'leadership', 'economic-policy'],
+  'crypto':          ['markets', 'technology', 'ai', 'venture-capital'],
+  'science':         ['ai', 'healthcare', 'energy-climate', 'technology'],
+  'culture':         ['film', 'music', 'fashion', 'philosophy'],
+  'sports-business': ['business', 'markets', 'culture', 'leadership'],
+  'real-estate':     ['markets', 'economic-policy', 'business', 'energy-climate'],
+  'energy-climate':  ['economic-policy', 'science', 'geopolitics', 'real-estate'],
+  'healthcare':      ['science', 'economic-policy', 'business', 'ai'],
+  'economic-policy': ['markets', 'geopolitics', 'business', 'energy-climate'],
+  'leadership':      ['business', 'culture', 'philosophy', 'sports-business'],
+  'philosophy':      ['culture', 'science', 'leadership', 'geopolitics'],
+  'film':            ['culture', 'music', 'business', 'technology'],
+  'music':           ['culture', 'film', 'business', 'sports-business'],
+  'food':            ['culture', 'business', 'science', 'fashion'],
+  'fashion':         ['culture', 'business', 'film', 'music'],
+  'personal-finance':['markets', 'economic-policy', 'real-estate', 'leadership'],
+};
+
+// ── Paywall tier definitions ───────────────────────────────────
+const TIERS = {
+  free: {
+    name:     'Free',
+    price:    '$0',
+    period:   'forever',
+    features: ['1 briefing per day', '2 topics max', 'Standard voice'],
+    cta:      'Start for Free',
+    featured: false,
+  },
+  pro: {
+    name:     'Signal Pro',
+    price:    '$9.99',
+    period:   '/month',
+    features: ['Unlimited briefings', 'All your topics', 'Premium voice', 'Full Explore tab'],
+    cta:      'Start My 7-Day Free Trial',
+    badge:    'Most Popular',
+    featured: true,
+  },
+  annual: {
+    name:     'Annual',
+    price:    '$79',
+    period:   '/year',
+    savings:  'Save $40',
+    features: ['Everything in Pro', 'Priority updates', 'Early features'],
+    cta:      'Start My 7-Day Free Trial',
+    featured: false,
+  },
+};
+
+/* ============================================================
+   SECTION 2 — UTILITIES & SHARED HELPERS
+   ============================================================ */
+
+const $  = (id) => document.getElementById(id);
+const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+function formatDateline(d) {
+  return d.toLocaleDateString(undefined, {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  });
+}
+
+function autoDetectMode() {
+  return new Date().getHours() < 12 ? 'morning' : 'afternoon';
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function getGroqKey() {
+  return GROQ_KEY.trim();
+}
+
+function humanizeError(e) {
+  const msg = (e && e.message) || String(e);
+  if (/Failed to fetch|NetworkError/i.test(msg))
+    return "Couldn't reach the network. Check your connection and try again.";
+  if (/groq: invalid API key/i.test(msg))
+    return "Your Groq API key was rejected. Open Settings and check it.";
+  if (/all LLM providers failed|pollinations failed/i.test(msg))
+    return getGroqKey()
+      ? "Both LLM providers are unreachable right now. Hit Regenerate in a moment."
+      : "The free LLM service is down. Open Settings to add a free Groq key for reliable briefings.";
+  if (/rss/i.test(msg))
+    return "The news feed didn't answer. Try again in a moment.";
+  return "Something hiccuped: " + msg + ". Try again.";
+}
+
+/* ============================================================
+   SECTION 3 — PROFILE (localStorage read / write)
+   ============================================================ */
+
+let profile = null;   // null until onboarding complete or existing profile loaded
+
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) { return null; }
+}
+
+function saveProfile(p) {
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+}
+
+// Returns the sections array the main app uses — derived from the
+// user's ordered interests. This replaces the old hardcoded SECTIONS array.
+function getSections() {
+  if (!profile || !profile.interests || !profile.interests.length) return [];
+  return profile.interests
+    .filter(k => INTEREST_MAP[k])
+    .map(k => ({
+      key:     k,
+      label:   INTEREST_MAP[k].label,
+      feeds:   INTEREST_MAP[k].feeds,
+      context: INTEREST_MAP[k].context,
+    }));
+}
+
+function getSuggestedTopics() {
+  if (!profile) return [];
+  const userSet  = new Set(profile.interests);
+  const seen     = new Set(profile.interests);
+  const results  = [];
+  for (const key of profile.interests) {
+    for (const adj of (ADJACENT_TOPICS[key] || [])) {
+      if (!seen.has(adj)) { seen.add(adj); results.push(adj); }
+    }
+  }
+  return results.slice(0, 4);
+}
+
+function addInterestToProfile(key) {
+  if (!profile || profile.interests.includes(key)) return;
+  profile.interests.push(key);
+  saveProfile(profile);
+}
+
+/* ============================================================
+   SECTION 4 — BOOT
+   ============================================================ */
+
+function init() {
+  profile = loadProfile();
+  if (profile && profile.onboardingComplete) {
+    $('onboarding').classList.add('hidden');
+    showApp();
+  } else {
+    startOnboarding();
+  }
+}
+
+/* ============================================================
+   SECTION 5 — ONBOARDING
+   ============================================================ */
+
+let obStep = 1;
+const obData = {
+  name:       '',
+  identities: [],   // multi-select — array of identity keys
+  interests:  [],
+  depth:      '',
+  tone:       '',
+  schedule:   [],
+};
+
+const TOTAL_STEPS = 7; // Paywall is an overlay, not a numbered step
+
+// ── Step navigation ───────────────────────────────────────────
+
+function startOnboarding() {
+  buildStepEls();
+  renderAllSteps();
+  goToStep(1, false);
+  $('ob-back').addEventListener('click', onBack);
+}
+
+let stepEls = [];
+
+function buildStepEls() {
+  const container = $('ob-steps');
+  container.innerHTML = '';
+  stepEls = [];
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const el = document.createElement('div');
+    el.className = 'ob-step';
+    el.id = 'ob-step-' + i;
+    container.appendChild(el);
+    stepEls.push(el);
+  }
+}
+
+const SLIDE_DURATION = 380; // ms — must match the transition below
+
+function goToStep(target, animate = true) {
+  if (target < 1 || target > TOTAL_STEPS) return;
+
+  const fromEl  = stepEls[obStep - 1];
+  const toEl    = stepEls[target - 1];
+  const forward = target > obStep;
+
+  if (!animate || fromEl === toEl) {
+    // First load or same step — just show the target, hide everything else
+    stepEls.forEach(el => {
+      el.style.display   = 'none';
+      el.style.transform = '';
+      el.style.transition = '';
+    });
+    toEl.style.display   = 'flex';
+    toEl.style.transform = 'translateX(0)';
+  } else {
+    // 1. Position the incoming step off-screen, make it visible but not yet transitioned
+    toEl.style.transition = 'none';
+    toEl.style.transform  = forward ? 'translateX(100%)' : 'translateX(-100%)';
+    toEl.style.display    = 'flex';
+
+    // 2. Force the browser to paint that starting position before animating
+    toEl.getBoundingClientRect();
+
+    // 3. Now apply the transition to both steps simultaneously
+    const easing = 'transform ' + SLIDE_DURATION + 'ms cubic-bezier(0.4,0,0.2,1)';
+    toEl.style.transition   = easing;
+    fromEl.style.transition = easing;
+
+    toEl.style.transform   = 'translateX(0)';
+    fromEl.style.transform = forward ? 'translateX(-100%)' : 'translateX(100%)';
+
+    // 4. After the animation, clean up the outgoing step
+    setTimeout(() => {
+      fromEl.style.display    = 'none';
+      fromEl.style.transform  = '';
+      fromEl.style.transition = '';
+    }, SLIDE_DURATION);
+  }
+
+  obStep = target;
+  updateProgress();
+  updateBackBtn();
+  // Paywall appears after step 7 — triggered by that step's CTA directly
+}
+
+function onBack() {
+  if (obStep > 1) goToStep(obStep - 1);
+}
+
+function updateProgress() {
+  const pct = ((obStep - 1) / (TOTAL_STEPS - 1)) * 100;
+  $('ob-progress-fill').style.width = pct + '%';
+}
+
+function updateBackBtn() {
+  const btn = $('ob-back');
+  if (obStep > 1) btn.classList.add('visible');
+  else            btn.classList.remove('visible');
+}
+
+// ── Step renderers ────────────────────────────────────────────
+
+function renderAllSteps() {
+  renderStep1(stepEls[0]);
+  renderStep2(stepEls[1]);
+  renderStep3(stepEls[2]);
+  renderStep4(stepEls[3]);
+  renderStep5(stepEls[4]);
+  renderStep6(stepEls[5]);
+  renderStep7(stepEls[6]);
+}
+
+// Step 1 — Welcome
+function renderStep1(el) {
+  el.innerHTML = `
+    <div class="ob-step-inner step1-wrap">
+      <h1 class="step1-wordmark">Signal<span class="dot">.</span></h1>
+      <p class="step1-tagline">Your world, distilled.</p>
+      <button class="step1-begin" id="step1-begin">Begin</button>
+    </div>`;
+  $('step1-begin').addEventListener('click', () => goToStep(2));
+}
+
+// Step 2 — Name
+function renderStep2(el) {
+  el.innerHTML = `
+    <div class="ob-step-inner">
+      <h2 class="ob-question">What should we call you?</h2>
+      <p class="ob-subtext" id="s2-sub">Your Signal is built for you personally.</p>
+      <input class="ob-input" id="s2-name" type="text" placeholder="First name" maxlength="32" autocomplete="given-name" />
+      <div class="ob-confirm" id="s2-confirm"></div>
+      <button class="ob-cta" id="s2-cta" disabled>Continue</button>
+    </div>`;
+
+  const input   = $('s2-name');
+  const cta     = $('s2-cta');
+  const sub     = $('s2-sub');
+  const confirm = $('s2-confirm');
+
+  // Restore previously entered name
+  if (obData.name) {
+    input.value = obData.name;
+    cta.disabled = false;
+    sub.innerHTML = `Your Signal is built for you personally, <strong>${escapeHtml(obData.name)}</strong>.`;
+  }
+
+  input.addEventListener('input', () => {
+    const val = input.value.trim();
+    obData.name  = val;
+    cta.disabled = !val;
+    if (val.length >= 2) {
+      sub.innerHTML      = `Your Signal is built for you personally, <strong>${escapeHtml(val)}</strong>.`;
+      confirm.textContent = 'Nice.';
+    } else {
+      sub.textContent    = 'Your Signal is built for you personally.';
+      confirm.textContent = '';
+    }
+  });
+
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && obData.name) goToStep(3); });
+  cta.addEventListener('click', () => { if (obData.name) goToStep(3); });
+  setTimeout(() => input.focus(), 420);
+}
+
+// Step 3 — Identity (multi-select)
+function renderStep3(el) {
+  el.innerHTML = `
+    <div class="ob-step-inner">
+      <h2 class="ob-question">How would you describe yourself?</h2>
+      <p class="ob-subtext">Select all that apply. This shapes how Signal thinks about your world.</p>
+      <div class="ob-identity-grid" id="s3-grid"></div>
+      <div class="ob-confirm" id="s3-confirm"></div>
+      <button class="ob-cta" id="s3-cta" disabled>Continue</button>
+    </div>`;
+
+  const grid    = $('s3-grid');
+  const cta     = $('s3-cta');
+  const confirm = $('s3-confirm');
+
+  IDENTITIES.forEach(({ key, label, icon }) => {
+    const card = document.createElement('div');
+    const isSelected = obData.identities.includes(key);
+    card.className = 'ob-identity-card' + (isSelected ? ' multi-selected' : '');
+    card.dataset.key = key;
+    card.innerHTML = `<span class="card-icon">${icon}</span><span>${escapeHtml(label)}</span>`;
+    card.addEventListener('click', () => {
+      const idx = obData.identities.indexOf(key);
+      if (idx === -1) obData.identities.push(key);
+      else            obData.identities.splice(idx, 1);
+      card.classList.toggle('multi-selected', obData.identities.includes(key));
+      const n = obData.identities.length;
+      cta.disabled = n === 0;
+      confirm.textContent = n > 0 ? (n === 1 ? 'Got it.' : 'Perfect.') : '';
+    });
+    grid.appendChild(card);
+  });
+
+  if (obData.identities.length > 0) { cta.disabled = false; }
+  cta.addEventListener('click', () => { if (obData.identities.length > 0) goToStep(4); });
+}
+
+// Step 4 — Interests
+function renderStep4(el) {
+  el.innerHTML = `
+    <div class="ob-step-inner">
+      <h2 class="ob-question">What do you want to stay ahead of?</h2>
+      <p class="ob-subtext" id="s4-sub">Pick at least 3. These become your Signal.</p>
+      <div class="ob-interests-grid" id="s4-grid"></div>
+      <div class="ob-selection-preview" id="s4-preview">
+        <div class="preview-label">Your Signal will cover</div>
+        <span id="s4-preview-text">Nothing selected yet</span>
+      </div>
+      <p class="ob-min-note" id="s4-note">Select at least 3 to continue</p>
+      <button class="ob-cta" id="s4-cta" disabled>Build My Signal</button>
+    </div>`;
+
+  const grid    = $('s4-grid');
+  const preview = $('s4-preview');
+  const prevTxt = $('s4-preview-text');
+  const note    = $('s4-note');
+  const cta     = $('s4-cta');
+
+  INTEREST_KEYS.forEach(key => {
+    const info = INTEREST_MAP[key];
+    const card = document.createElement('div');
+    card.className = 'ob-interest-card' + (obData.interests.includes(key) ? ' selected' : '');
+    card.dataset.key = key;
+    card.textContent = info.label;
+    card.addEventListener('click', () => {
+      const idx = obData.interests.indexOf(key);
+      if (idx === -1) obData.interests.push(key);
+      else            obData.interests.splice(idx, 1);
+      card.classList.toggle('selected', obData.interests.includes(key));
+      updateInterestUI();
+    });
+    grid.appendChild(card);
+  });
+
+  function updateInterestUI() {
+    const n = obData.interests.length;
+    const met = n >= 3;
+    cta.disabled = !met;
+    note.textContent  = met ? `${n} selected` : `Select at least ${3 - n} more`;
+    note.classList.toggle('met', met);
+    if (n > 0) {
+      preview.classList.add('has-items');
+      prevTxt.textContent = obData.interests.map(k => INTEREST_MAP[k]?.label).filter(Boolean).join(', ');
+    } else {
+      preview.classList.remove('has-items');
+      prevTxt.textContent = 'Nothing selected yet';
+    }
+  }
+
+  updateInterestUI();
+  cta.addEventListener('click', () => { if (obData.interests.length >= 3) goToStep(5); });
+}
+
+// Step 5 — Depth
+function renderStep5(el) {
+  el.innerHTML = `
+    <div class="ob-step-inner">
+      <h2 class="ob-question">How deep do you want to go?</h2>
+      <p class="ob-subtext">Sets the length and depth of every briefing.</p>
+      <div class="ob-options" id="s5-opts"></div>
+      <button class="ob-cta" id="s5-cta" disabled>Continue</button>
+    </div>`;
+  renderSingleSelect('s5-opts', 's5-cta', DEPTH_OPTIONS, 'depth', () => goToStep(6));
+}
+
+// Step 6 — Tone
+function renderStep6(el) {
+  el.innerHTML = `
+    <div class="ob-step-inner">
+      <h2 class="ob-question">How should Signal talk to you?</h2>
+      <p class="ob-subtext">Your voice preference applies to every briefing and section.</p>
+      <div class="ob-options" id="s6-opts"></div>
+      <button class="ob-cta" id="s6-cta" disabled>Continue</button>
+    </div>`;
+  renderSingleSelect('s6-opts', 's6-cta', TONE_OPTIONS, 'tone', () => goToStep(7));
+}
+
+// Step 7 — Schedule
+function renderStep7(el) {
+  el.innerHTML = `
+    <div class="ob-step-inner">
+      <h2 class="ob-question">When do you want your briefing?</h2>
+      <p class="ob-subtext">Select all that apply. You can always change this later.</p>
+      <div class="ob-options" id="s7-opts"></div>
+      <div class="ob-confirm" id="s7-confirm"></div>
+      <button class="ob-cta" id="s7-cta" disabled>Continue</button>
+    </div>`;
+
+  const optsEl   = $('s7-opts');
+  const confirm  = $('s7-confirm');
+  const cta      = $('s7-cta');
+
+  SCHEDULE_OPTIONS.forEach(({ key, label, desc }) => {
+    const card = document.createElement('div');
+    card.className = 'ob-option' + (obData.schedule.includes(key) ? ' multi-selected' : '');
+    card.dataset.key = key;
+    card.innerHTML = `<div class="ob-option-title">${escapeHtml(label)}</div><div class="ob-option-desc">${escapeHtml(desc)}</div>`;
+    card.addEventListener('click', () => {
+      const idx = obData.schedule.indexOf(key);
+      if (idx === -1) obData.schedule.push(key);
+      else            obData.schedule.splice(idx, 1);
+      card.classList.toggle('multi-selected', obData.schedule.includes(key));
+      const met = obData.schedule.length > 0;
+      cta.disabled = !met;
+      confirm.textContent = met ? 'Great choice.' : '';
+    });
+    optsEl.appendChild(card);
+  });
+
+  if (obData.schedule.length > 0) { cta.disabled = false; confirm.textContent = 'Great choice.'; }
+  cta.addEventListener('click', () => { if (obData.schedule.length > 0) showPaywall(); });
+}
+
+// ── Reusable single-select renderer ──────────────────────────
+function renderSingleSelect(optsId, ctaId, options, dataKey, onNext) {
+  const optsEl = $(optsId);
+  const cta    = $(ctaId);
+  options.forEach(({ key, label, desc }) => {
+    const card = document.createElement('div');
+    card.className = 'ob-option' + (obData[dataKey] === key ? ' selected' : '');
+    card.dataset.key = key;
+    card.innerHTML = `<div class="ob-option-title">${escapeHtml(label)}</div><div class="ob-option-desc">${escapeHtml(desc)}</div>`;
+    card.addEventListener('click', () => {
+      obData[dataKey] = key;
+      optsEl.querySelectorAll('.ob-option').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      cta.disabled = false;
+    });
+    optsEl.appendChild(card);
+  });
+  if (obData[dataKey]) cta.disabled = false;
+  cta.addEventListener('click', () => { if (obData[dataKey]) onNext(); });
+}
+
+// Preview step removed — flow goes Step 7 → Paywall directly
+
+/* ============================================================
+   SECTION 6 — PAYWALL
+   ============================================================ */
+
+function showPaywall() {
+  const overlay   = $('paywall-overlay');
+  const name      = obData.name || 'you';
+  const interests = obData.interests.map(k => INTEREST_MAP[k]?.label).filter(Boolean);
+  const topicsStr = interests.slice(0, 3).join(', ')
+    + (interests.length > 3 ? ` +${interests.length - 3} more` : '');
+
+  overlay.innerHTML = `
+    <div class="paywall-card">
+      <div class="paywall-pill"></div>
+
+      <!-- Step 1: Completion moment -->
+      <div class="paywall-completion" id="paywall-completion">
+        <div class="paywall-check-circle" id="paywall-check">✓</div>
+        <div class="paywall-completion-title" id="paywall-comp-title">Your Signal is 100% configured, ${escapeHtml(name)}.</div>
+        <div class="paywall-completion-sub" id="paywall-comp-sub">Personalized intelligence across <strong>${escapeHtml(topicsStr)}</strong>.</div>
+      </div>
+
+      <!-- Step 2: Pricing block — animates in after completion -->
+      <div class="paywall-pricing-block" id="paywall-pricing">
+        <label class="paywall-trial-row">
+          <input type="checkbox" id="trial-toggle" checked />
+          <div>
+            <div class="paywall-trial-label">Start with 7 days free</div>
+            <div class="paywall-trial-sub">No charge until your trial ends. Cancel anytime.</div>
+          </div>
+        </label>
+
+        <div class="paywall-tiers" id="paywall-tiers">
+          ${buildTierHTML('free')}
+          ${buildTierHTML('pro')}
+          ${buildTierHTML('annual')}
+        </div>
+
+        <button class="paywall-cta" id="paywall-cta">Start My 7-Day Free Trial</button>
+        <p class="paywall-fine-print">🔒 Cancel anytime. No questions asked.</p>
+
+        <div class="paywall-testimonials">
+          <div class="paywall-testimonial-card">
+            <div class="paywall-testimonial-stars">★★★★★</div>
+            <div class="paywall-testimonial-quote">"I used to spend an hour reading the news. Now I get everything I need in 10 minutes."</div>
+            <div class="paywall-testimonial-author">Product Designer<br>Series B startup</div>
+          </div>
+          <div class="paywall-testimonial-card">
+            <div class="paywall-testimonial-stars">★★★★★</div>
+            <div class="paywall-testimonial-quote">"The briefings feel like they were written specifically for my world. Because they were."</div>
+            <div class="paywall-testimonial-author">VC Analyst<br>New York</div>
+          </div>
+          <div class="paywall-testimonial-card">
+            <div class="paywall-testimonial-stars">★★★★★</div>
+            <div class="paywall-testimonial-quote">"Finally. An app that respects both my time and my intelligence."</div>
+            <div class="paywall-testimonial-author">Founder<br>YC W24</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  let selectedTier = 'pro';
+
+  function selectTier(key) {
+    selectedTier = key;
+    overlay.querySelectorAll('.paywall-tier').forEach(t => {
+      t.classList.toggle('selected', t.dataset.tier === key);
+    });
+    $('paywall-cta').textContent = TIERS[key].cta;
+  }
+
+  // Phase 1: show overlay, start completion animation
+  setTimeout(() => {
+    overlay.classList.add('visible');
+
+    // Checkmark pops in
+    setTimeout(() => $('paywall-check')?.classList.add('in'), 100);
+    // Title fades up
+    setTimeout(() => $('paywall-comp-title')?.classList.add('in'), 200);
+    // Subline fades in
+    setTimeout(() => $('paywall-comp-sub')?.classList.add('in'), 380);
+
+    // Phase 2: slide pricing up 1 second after overlay appears
+    setTimeout(() => {
+      $('paywall-pricing')?.classList.add('in');
+
+      overlay.querySelectorAll('.paywall-tier').forEach(t => {
+        t.addEventListener('click', () => selectTier(t.dataset.tier));
+      });
+      selectTier('pro');
+      $('paywall-cta').addEventListener('click', () => completeOnboarding(selectedTier));
+    }, 1000);
+
+  }, 40);
+}
+
+function buildTierHTML(key) {
+  const t = TIERS[key];
+  return `
+    <div class="paywall-tier${t.featured ? ' featured' : ''}" data-tier="${key}">
+      ${t.badge ? `<div class="paywall-tier-badge">${escapeHtml(t.badge)}</div>` : ''}
+      <div class="paywall-tier-name">${escapeHtml(t.name)}</div>
+      ${t.savings ? `<div class="paywall-tier-savings">${escapeHtml(t.savings)}</div>` : ''}
+      <div class="paywall-tier-price">${escapeHtml(t.price)}</div>
+      <div class="paywall-tier-period">${escapeHtml(t.period)}</div>
+      <ul class="paywall-tier-features">
+        ${t.features.map(f => `<li>${escapeHtml(f)}</li>`).join('')}
+      </ul>
+    </div>`;
+}
+
+function completeOnboarding(tier) {
+  profile = {
+    name:               obData.name,
+    identities:         obData.identities,
+    interests:          obData.interests,
+    depth:              obData.depth     || 'balanced',
+    tone:               obData.tone      || 'conversational',
+    schedule:           obData.schedule.length ? obData.schedule : ['morning'],
+    tier:               tier,
+    trialStart:         Date.now(),
+    onboardingComplete: true,
+  };
+  saveProfile(profile);
+
+  // Fade out paywall and onboarding, then show app
+  const overlay    = $('paywall-overlay');
+  const onboarding = $('onboarding');
+  overlay.classList.remove('visible');
+  onboarding.classList.add('fade-out');
+  setTimeout(() => {
+    onboarding.classList.add('hidden');
+    overlay.style.display = 'none';
+    showApp();
+  }, 500);
+}
+
+/* ============================================================
+   SECTION 6B — STREAK COUNTER
+   ============================================================ */
+
+const STREAK_KEY = 'signal:streak';
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// Returns {count, lastVisit, incremented} — call on every app load
+function updateStreak() {
+  const today = todayStr();
+  let data    = { count: 0, lastVisit: '' };
+  try { data = JSON.parse(localStorage.getItem(STREAK_KEY) || 'null') || data; } catch(_) {}
+
+  if (data.lastVisit === today) return { ...data, incremented: false };
+
+  const yesterday = (() => {
+    const d = new Date(); d.setDate(d.getDate() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  })();
+
+  const incremented = true;
+  if (data.lastVisit === yesterday) {
+    data.count += 1;
+  } else {
+    data.count = 1; // reset
+  }
+  data.lastVisit = today;
+  localStorage.setItem(STREAK_KEY, JSON.stringify(data));
+  return { ...data, incremented };
+}
+
+function getStreak() {
+  try { return JSON.parse(localStorage.getItem(STREAK_KEY) || 'null') || { count: 0, lastVisit: '' }; }
+  catch(_) { return { count: 0, lastVisit: '' }; }
+}
+
+function renderStreakPill(count) {
+  const wrap = $('streak-pill-wrap');
+  const pill = $('streak-pill');
+  if (!wrap || !pill) return;
+  if (count >= 3) {
+    pill.textContent   = `🔥 ${count}`;
+    wrap.style.display = '';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function showStreakToast(count) {
+  const existing = document.querySelector('.signal-toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className   = 'signal-toast';
+  toast.textContent = `🔥 ${count} day streak!`;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('show'));
+  });
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 350);
+  }, 3000);
+}
+
+/* ============================================================
+   SECTION 7 — MAIN APP
+   ============================================================ */
+
+let appMode      = autoDetectMode();
+let briefingData = {};
+let currentView  = 'briefing';
+
+function showApp() {
+  const app = $('app');
+  app.classList.add('visible');
+  updateMasthead();
+  setAppMode(appMode);
+  $('app-dateline').textContent = formatDateline(new Date());
+
+  // Sidebar — start hidden until generate completes
+  const sidebarEl = $('section-nav-bar');
+  if (sidebarEl) sidebarEl.style.display = 'none';
+
+  // Streak
+  const streak = updateStreak();
+  renderStreakPill(streak.count);
+  if (streak.incremented && streak.count >= 3) showStreakToast(streak.count);
+
+  // Nav
+  $('nav-briefing').addEventListener('click', () => switchView('briefing'));
+  $('nav-explore').addEventListener('click',  () => switchView('explore'));
+  $('nav-profile').addEventListener('click',  () => switchView('profile'));
+
+  // Mode toggle
+  $('mode-morning').addEventListener('click',   () => setAppMode('morning'));
+  $('mode-afternoon').addEventListener('click', () => setAppMode('afternoon'));
+
+  // Generate
+  $('generate-btn').addEventListener('click', onGenerate);
+
+
+  // Audio controls
+  $('play-btn').addEventListener('click',  onPlay);
+  $('pause-btn').addEventListener('click', onPause);
+  $('stop-btn').addEventListener('click',  onStop);
+
+  // Apply saved voice name display
+  updateVoiceNameDisplay();
+
+  renderExplore();
+}
+
+function updateMasthead() {
+  if (!profile) return;
+  const time = appMode === 'morning' ? 'Morning' : 'Afternoon';
+  $('masthead-title').textContent   = `${time} Briefing for ${profile.name}`;
+  $('app-edition').textContent      = `${time} Edition`;
+}
+
+function setAppMode(m) {
+  appMode = m;
+  $('mode-morning').classList.toggle('active',   m === 'morning');
+  $('mode-afternoon').classList.toggle('active', m === 'afternoon');
+  $('mode-morning').setAttribute('aria-selected',   m === 'morning'   ? 'true' : 'false');
+  $('mode-afternoon').setAttribute('aria-selected', m === 'afternoon' ? 'true' : 'false');
+  $('app-edition').textContent = m === 'morning' ? 'Morning Edition' : 'Afternoon Edition';
+  $('masthead-title').textContent = `${m === 'morning' ? 'Morning' : 'Afternoon'} Briefing for ${profile ? profile.name : ''}`;
+}
+
+function switchView(view) {
+  currentView = view;
+  ['briefing','explore','profile'].forEach(v => {
+    const btn = $('nav-' + v);
+    if (btn) {
+      btn.classList.toggle('active', v === view);
+      btn.setAttribute('aria-selected', v === view ? 'true' : 'false');
+    }
+    const el = $(v + '-view');
+    if (!el) return;
+    // Use explicit 'block' — these elements have display:none in CSS so '' would keep them hidden
+    el.style.display = v === view ? 'block' : 'none';
+  });
+  if (view === 'explore') renderExplore();
+  if (view === 'profile') renderProfile();
+  // Show sidebar only on briefing view when content is loaded
+  const sNav       = $('section-nav-bar');
+  const appContent = $('app-content');
+  const hasContent = $('briefing-content') && $('briefing-content').children.length > 0;
+  const showSidebar = view === 'briefing' && hasContent;
+  if (sNav)       sNav.style.display = showSidebar ? 'block' : 'none'; // explicit — never ''
+  if (appContent) appContent.classList.toggle('has-sidebar', showSidebar);
+}
+
+/* ── Generate / render briefing ─────────────────────────────── */
+
+async function onGenerate() {
+  hideError();
+  onStop();
+  briefingData = {};
+  $('briefing-content').innerHTML = '';
+  $('audio-wrap').classList.remove('visible');
+  $('state-empty').style.display  = 'none';
+  $('state-loading').classList.add('visible');
+  $('generate-btn').disabled    = true;
+  $('generate-btn').textContent = 'Pulling…';
+
+  const sections = getSections();
+
+  try {
+    // 1. Fetch all feeds in parallel
+    setLoadingLabel('Pulling the wires');
+    const sectionsWithItems = await Promise.all(sections.map(async (s) => {
+      const items = await fetchSection(s);
+      return { ...s, items };
+    }));
+
+    // 2. Render skeleton immediately
+    renderSections(sectionsWithItems);
+
+    // 3. Write AI commentary section by section
+    for (let i = 0; i < sectionsWithItems.length; i++) {
+      const s = sectionsWithItems[i];
+      setLoadingLabel(`Writing ${s.label.toLowerCase()}`);
+      try {
+        const system = buildSystemPrompt(profile.tone, profile.name, appMode);
+        const user   = buildUserPrompt(s.label, s.items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
+        const lede   = await fetchCommentary(system, user);
+        briefingData[s.key] = { lede, items: s.items, label: s.label };
+        injectLede(s.key, lede);
+      } catch (err) {
+        console.warn('commentary failed:', s.key, err);
+        briefingData[s.key] = { lede: null, items: s.items, label: s.label };
+        injectLedeError(s.key);
+      }
+      if (i < sectionsWithItems.length - 1) await wait(380);
+    }
+
+    $('audio-wrap').classList.add('visible');
+
+    // Fire Signal Noticed — async, non-blocking, fails silently
+    fetchSignalNoticed(sectionsWithItems).catch(() => {});
+
+  } catch (e) {
+    console.error(e);
+    showError(humanizeError(e));
+  } finally {
+    $('state-loading').classList.remove('visible');
+    $('generate-btn').disabled    = false;
+    $('generate-btn').textContent = 'Regenerate';
+  }
+}
+
+async function fetchSignalNoticed(sections) {
+  const interests  = (profile?.interests || []).map(k => INTEREST_MAP[k]?.label).filter(Boolean).join(', ');
+  const headlines  = sections.map(s => s.items?.[0]?.title).filter(Boolean).join('\n');
+  if (!interests || !headlines) return;
+
+  const system = 'You are Signal\'s intelligence layer. You identify non-obvious patterns across news topics.';
+  const user   = `The user follows these topics: ${interests}.\n\nHere are today\'s top headlines across all their sections:\n${headlines}\n\nIdentify one sharp, specific cross-topic pattern or convergence happening today. Write exactly one sentence. Be genuinely insightful and specific — reference actual topics or events. Do not start with "Signal noticed" or "I noticed". Just state the insight directly.`;
+
+  const insight = await fetchCommentary(system, user);
+  if (!insight || !insight.trim()) return;
+
+  // Inject card at top of briefing content
+  const container = $('briefing-content');
+  if (!container) return;
+
+  const card = document.createElement('div');
+  card.className = 'signal-noticed-card';
+  card.id        = 'signal-noticed';
+  card.innerHTML = `
+    <div class="signal-noticed-label">Signal Noticed</div>
+    <div class="signal-noticed-text">${escapeHtml(cleanupLede(insight))}</div>`;
+
+  container.insertBefore(card, container.firstChild);
+  requestAnimationFrame(() => card.classList.add('shown'));
+}
+
+function setLoadingLabel(txt) {
+  $('loading-label').textContent = txt;
+}
+
+function renderSections(sections) {
+  const container = $('briefing-content');
+  container.innerHTML = '';
+
+  // Build section nav
+  buildSectionNav(sections);
+
+  sections.forEach((s, idx) => {
+    const el = document.createElement('section');
+    el.className       = 'story-section';
+    el.id              = 'section-' + s.key;
+    el.dataset.section = s.key;
+    el.innerHTML = `
+      <div class="section-head">
+        <span class="section-num">No.&nbsp;${String(idx + 1).padStart(2, '0')}</span>
+        <h2 class="section-name">${escapeHtml(s.label)}</h2>
+        <button class="section-share-btn" data-section-key="${escapeHtml(s.key)}" data-section-label="${escapeHtml(s.label)}">Share ↗</button>
+      </div>
+      <p class="section-lede placeholder" data-key="${escapeHtml(s.key)}">
+        <em>Writing the take<span class="loading-dots"></span></em>
+      </p>
+      <div class="headlines-label">Today's stories</div>
+      <ol class="headlines" id="hl-${escapeHtml(s.key)}">
+        ${s.items.map((it, i) => `
+          <li id="hl-item-${escapeHtml(s.key)}-${i}" data-title="${escapeHtml(it.title)}" data-link="${escapeHtml(it.link)}" data-source="${escapeHtml(it.source||'')}" data-section="${escapeHtml(s.label)}">
+            <a href="${escapeHtml(it.link)}" target="_blank" rel="noopener noreferrer">
+              <span class="hl-title">${escapeHtml(it.title)}</span>
+              ${it.source ? `<span class="hl-src">${escapeHtml(it.source)}</span>` : ''}
+            </a>
+            <button class="hl-bookmark${isSaved(it.link) ? ' saved' : ''}" aria-label="Save story" data-link="${escapeHtml(it.link)}">
+              ${isSaved(it.link) ? bookmarkFilledSVG() : bookmarkOutlineSVG()}
+            </button>
+          </li>`).join('')}
+      </ol>`;
+    container.appendChild(el);
+
+    if (idx < sections.length - 1) {
+      const orn = document.createElement('div');
+      orn.className   = 'section-ornament';
+      orn.textContent = '· · ·';
+      container.appendChild(orn);
+    }
+
+    requestAnimationFrame(() => el.classList.add('shown'));
+
+    // Wire share button
+    const shareBtn = el.querySelector('.section-share-btn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', () => shareSection(s.key, s.label, s.items));
+    }
+
+    // Fetch one landscape image for the section lede
+    if (PEXELS_KEY) {
+      fetchSectionImage(s.label, s.key).catch(() => {});
+    }
+
+    // Wire bookmark buttons
+    el.querySelectorAll('.hl-bookmark').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const li     = btn.closest('li');
+        const story  = {
+          title:       li.dataset.title,
+          link:        li.dataset.link,
+          source:      li.dataset.source,
+          sectionName: li.dataset.section,
+          savedAt:     new Date().toISOString(),
+        };
+        toggleSaved(story);
+        const saved = isSaved(story.link);
+        btn.classList.toggle('saved', saved);
+        btn.innerHTML = saved ? bookmarkFilledSVG() : bookmarkOutlineSVG();
+        btn.setAttribute('aria-label', saved ? 'Unsave story' : 'Save story');
+      });
+    });
+  });
+
+  // Start scroll-spy after a beat
+  setTimeout(() => initSectionScrollSpy(sections), 300);
+}
+
+/* ── Saved stories helpers ───────────────────────────────────── */
+
+const SAVED_KEY = 'signal:saved';
+
+function getSaved() {
+  try { return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]'); }
+  catch(_) { return []; }
+}
+
+function isSaved(link) {
+  return getSaved().some(s => s.link === link);
+}
+
+function toggleSaved(story) {
+  let saved = getSaved();
+  const idx = saved.findIndex(s => s.link === story.link);
+  if (idx === -1) saved.unshift(story);
+  else            saved.splice(idx, 1);
+  localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
+}
+
+function bookmarkOutlineSVG() {
+  return `<svg width="14" height="16" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 2C2 1.44772 2.44772 1 3 1H11C11.5523 1 12 1.44772 12 2V14.382C12 14.7607 11.572 14.9953 11.2764 14.7764L7 12L2.7236 14.7764C2.42803 14.9953 2 14.7607 2 14.382V2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+function bookmarkFilledSVG() {
+  return `<svg width="14" height="16" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 2C2 1.44772 2.44772 1 3 1H11C11.5523 1 12 1.44772 12 2V14.382C12 14.7607 11.572 14.9953 11.2764 14.7764L7 12L2.7236 14.7764C2.42803 14.9953 2 14.7607 2 14.382V2Z" fill="currentColor"/>
+  </svg>`;
+}
+
+async function shareSection(key, label, items) {
+  const top3  = items.slice(0, 3).map(it => it.title).join('\n');
+  const text  = `${label} via Signal\n\n${top3}\n\nGet your personalized briefing at signal.app`;
+
+  const btn = $('briefing-content')?.querySelector(`.section-share-btn[data-section-key="${key}"]`);
+
+  if (navigator.share) {
+    try { await navigator.share({ title: `${label} via Signal`, text }); } catch(_) {}
+    return;
+  }
+
+  // Fallback: copy to clipboard
+  try {
+    await navigator.clipboard.writeText(text);
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+    }
+  } catch(_) {}
+}
+
+async function fetchSectionImage(interestLabel, sectionKey) {
+  try {
+    const res = await fetch(
+      `https://api.pexels.com/v1/search?query=${encodeURIComponent(interestLabel)}&per_page=3&orientation=landscape`,
+      { headers: { Authorization: PEXELS_KEY } }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    const photos = data?.photos;
+    if (!photos || !photos.length) return;
+    // Pick a random result from the 3 returned
+    const photo  = photos[Math.floor(Math.random() * photos.length)];
+    const imgUrl = photo?.src?.large || photo?.src?.medium;
+    if (!imgUrl) return;
+
+    // Inject the image above the lede
+    const section = document.getElementById('section-' + sectionKey);
+    if (!section) return;
+    const lede    = section.querySelector('.section-lede');
+    if (!lede) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'section-lede-image-wrap';
+    const img  = document.createElement('img');
+    img.className = 'section-lede-image';
+    img.src     = imgUrl;
+    img.alt     = interestLabel;
+    img.loading = 'lazy';
+    img.onerror = () => wrap.remove(); // hide gracefully on error
+    const credit = document.createElement('div');
+    credit.className   = 'section-lede-image-credit';
+    credit.textContent = 'Photo: Pexels';
+    wrap.appendChild(img);
+    wrap.appendChild(credit);
+
+    lede.parentNode.insertBefore(wrap, lede);
+  } catch (_) { /* fail silently */ }
+}
+
+function buildSectionNav(sections) {
+  const sidebar      = $('section-nav-bar');
+  const sidebarInner = $('section-nav-inner');
+  const mobileWrap   = $('section-pills-mobile-inner');
+  if (!sidebar || !sidebarInner) return;
+
+  sidebarInner.innerHTML = '';
+  if (mobileWrap) mobileWrap.innerHTML = '';
+
+  sections.forEach(s => {
+    const scrollTo = () => {
+      const target = document.getElementById('section-' + s.key);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    // Sidebar pill
+    const pill = document.createElement('button');
+    pill.className      = 'section-nav-pill';
+    pill.dataset.key    = s.key;
+    pill.textContent    = s.label;
+    pill.addEventListener('click', scrollTo);
+    sidebarInner.appendChild(pill);
+
+    // Mobile pill (duplicate, separate element)
+    if (mobileWrap) {
+      const mp = document.createElement('button');
+      mp.className      = 'section-pill-mobile';
+      mp.dataset.key    = s.key;
+      mp.textContent    = s.label;
+      mp.addEventListener('click', scrollTo);
+      mobileWrap.appendChild(mp);
+    }
+  });
+
+  // Show sidebar + shift content — must use explicit 'block', not ''
+  sidebar.style.display = 'block';
+  const appContent = $('app-content');
+  if (appContent) appContent.classList.add('has-sidebar');
+}
+
+let sectionObserver = null;
+function initSectionScrollSpy(sections) {
+  if (sectionObserver) sectionObserver.disconnect();
+
+  // Map section key → sidebar pill + mobile pill
+  const pillMap = {};
+  ($('section-nav-inner') || { querySelectorAll: () => [] })
+    .querySelectorAll('.section-nav-pill')
+    .forEach(p => { pillMap[p.dataset.key] = pillMap[p.dataset.key] || []; pillMap[p.dataset.key].push(p); });
+  ($('section-pills-mobile-inner') || { querySelectorAll: () => [] })
+    .querySelectorAll('.section-pill-mobile')
+    .forEach(p => { pillMap[p.dataset.key] = pillMap[p.dataset.key] || []; pillMap[p.dataset.key].push(p); });
+
+  sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const key   = entry.target.dataset.section;
+      const pills = pillMap[key] || [];
+      pills.forEach(p => p.classList.toggle('active', entry.isIntersecting));
+    });
+  }, { rootMargin: '-10% 0px -60% 0px', threshold: 0 });
+
+  sections.forEach(s => {
+    const el = document.getElementById('section-' + s.key);
+    if (el) sectionObserver.observe(el);
+  });
+}
+
+function injectLede(key, text) {
+  const el = $('briefing-content').querySelector(`.section-lede[data-key="${key}"]`);
+  if (!el) return;
+  el.classList.remove('placeholder');
+  el.textContent = text;
+  updateReadingTime(key, text);
+}
+
+function updateReadingTime(key, ledeText) {
+  const section = document.getElementById('section-' + key);
+  if (!section) return;
+
+  // Count words in lede + all headline titles
+  let wordCount = (ledeText || '').split(/\s+/).filter(Boolean).length;
+  section.querySelectorAll('.hl-title').forEach(el => {
+    wordCount += el.textContent.split(/\s+/).filter(Boolean).length;
+  });
+
+  const minutes = Math.max(1, Math.ceil(wordCount / 200));
+  const sectionNum = section.querySelector('.section-num');
+  if (!sectionNum) return;
+
+  // Remove existing reading time if re-generating
+  const existing = section.querySelector('.section-read-time');
+  if (existing) existing.remove();
+
+  const span = document.createElement('span');
+  span.className   = 'section-read-time';
+  span.textContent = `· ~${minutes} min read`;
+  span.style.cssText = 'font-size:12px;color:var(--muted);font-family:var(--sans);font-weight:400;margin-left:8px;letter-spacing:0';
+  sectionNum.parentNode.insertBefore(span, sectionNum.nextSibling);
+}
+
+function injectLedeError(key) {
+  const el = $('briefing-content').querySelector(`.section-lede[data-key="${key}"]`);
+  if (el) { el.classList.add('placeholder'); el.innerHTML = '<em>Commentary skipped — the free model didn\'t answer. Hit Regenerate.</em>'; }
+}
+
+/* ── Error UI ────────────────────────────────────────────────── */
+function showError(msg) {
+  const el = $('errbox');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+function hideError() {
+  const el = $('errbox');
+  el.classList.remove('visible');
+  el.textContent = '';
+}
+
+/* ============================================================
+   SECTION 8 — EXPLORE TAB
+   ============================================================ */
+
+let exploreRendered = false;
+let activeExploreKey = null;
+
+function renderExplore() {
+  const container = $('explore-view');
+  if (!container) return;
+
+  const suggested = getSuggestedTopics();
+  const userSet   = new Set(profile ? profile.interests : []);
+
+  container.innerHTML = `
+    <div class="explore-header">
+      <h2>Explore</h2>
+      <p>Go beyond your Signal. Tap any topic to load a live briefing.</p>
+    </div>
+
+    ${suggested.length > 0 ? `
+    <div class="explore-block-label">Suggested for you</div>
+    <div class="explore-suggested-grid" id="explore-suggested">
+      ${suggested.map(key => buildExploreCardHTML(key)).join('')}
+    </div>` : ''}
+
+    <div class="explore-block-label">Browse all topics</div>
+    <div class="explore-all-grid" id="explore-all">
+      ${INTEREST_KEYS.map(key => {
+        const inSig = userSet.has(key);
+        return `
+          <div class="explore-all-item${inSig ? ' in-signal' : ''}" data-key="${key}">
+            <span>${escapeHtml(INTEREST_MAP[key].label)}</span>
+            ${inSig ? '<span class="in-signal-chip">In Signal</span>' : ''}
+          </div>`;
+      }).join('')}
+    </div>
+
+    <div class="explore-result" id="explore-result" style="display:none"></div>`;
+
+  // Wire suggested cards
+  container.querySelectorAll('.explore-topic-card').forEach(card => {
+    card.addEventListener('click', () => loadExploreTopic(card.dataset.key));
+  });
+
+  // Wire all-topics items
+  container.querySelectorAll('.explore-all-item:not(.in-signal)').forEach(item => {
+    item.addEventListener('click', () => loadExploreTopic(item.dataset.key));
+  });
+}
+
+function buildExploreCardHTML(key) {
+  const info = INTEREST_MAP[key];
+  if (!info) return '';
+  return `
+    <div class="explore-topic-card" data-key="${key}">
+      <div class="explore-card-name">${escapeHtml(info.label)}</div>
+      <div class="explore-card-desc">${escapeHtml(info.desc)}</div>
+      <div class="explore-card-cta">Load briefing →</div>
+    </div>`;
+}
+
+async function loadExploreTopic(key) {
+  const info = INTEREST_MAP[key];
+  if (!info) return;
+
+  activeExploreKey = key;
+
+  // Mark card loading
+  $('explore-view').querySelectorAll(`[data-key="${key}"]`).forEach(el => {
+    el.classList.add('loading-topic');
+  });
+
+  const resultEl = $('explore-result');
+  if (resultEl) {
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `
+      <div class="explore-result-header">
+        <div class="explore-result-title">${escapeHtml(info.label)}</div>
+      </div>
+      <div style="text-align:center;padding:28px 0;color:var(--muted);font-size:11px;letter-spacing:.2em;text-transform:uppercase;">
+        Loading<span class="loading-dots"></span>
+      </div>`;
+    resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  let items = [];
+  let lede  = null;
+
+  try {
+    items = await fetchSection({ feeds: info.feeds });
+  } catch (e) { console.warn('explore feed failed', e); }
+
+  if (items.length > 0 && profile) {
+    try {
+      const system = buildSystemPrompt(profile.tone, profile.name, appMode);
+      const user   = buildUserPrompt(info.label, items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
+      lede = await fetchCommentary(system, user);
+    } catch (e) { console.warn('explore commentary failed', e); }
+  }
+
+  // Remove loading state from cards
+  $('explore-view').querySelectorAll(`[data-key="${key}"]`).forEach(el => {
+    el.classList.remove('loading-topic');
+  });
+
+  if (!resultEl || activeExploreKey !== key) return; // navigated away
+
+  const inSignal = profile && profile.interests.includes(key);
+
+  resultEl.innerHTML = `
+    <div class="explore-result-header">
+      <div class="explore-result-title">${escapeHtml(info.label)}</div>
+      ${!inSignal ? `<button class="explore-add-btn" id="explore-add-btn">+ Add to my Signal</button>` : '<span style="font-size:12px;color:var(--success)">✓ In your Signal</span>'}
+    </div>
+    ${lede ? `
+    <p class="section-lede" style="margin-bottom:20px">${escapeHtml(lede)}</p>` : ''}
+    ${items.length > 0 ? `
+    <div class="headlines-label">Today's stories</div>
+    <ol class="headlines">
+      ${items.map(it => `
+        <li>
+          <a href="${escapeHtml(it.link)}" target="_blank" rel="noopener noreferrer">
+            <span class="hl-title">${escapeHtml(it.title)}</span>
+            ${it.source ? `<span class="hl-src">${escapeHtml(it.source)}</span>` : ''}
+          </a>
+        </li>`).join('')}
+    </ol>` : '<p style="color:var(--muted);font-size:14px">No stories loaded — try again in a moment.</p>'}`;
+
+  const addBtn = $('explore-add-btn');
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      addInterestToProfile(key);
+      addBtn.textContent = '✓ Added';
+      addBtn.classList.add('added');
+      // Refresh the "in signal" chips in the all-topics grid
+      $('explore-view').querySelectorAll(`[data-key="${key}"]`).forEach(el => {
+        if (el.classList.contains('explore-all-item')) {
+          el.classList.add('in-signal');
+          const chip = document.createElement('span');
+          chip.className   = 'in-signal-chip';
+          chip.textContent = 'In Signal';
+          el.appendChild(chip);
+        }
+      });
+    });
+  }
+}
+
+/* ============================================================
+   SECTION 9 — LLM (Groq + Pollinations)
+   ============================================================ */
+
+function buildSystemPrompt(tone, name, mode) {
+  const time   = mode === 'morning' ? 'morning' : 'afternoon';
+
+  const shared = `Write 5 to 7 sentences as ONE flowing paragraph. Cover the bulk of the headlines — don't fixate on just one story. Connect them where it makes sense. NO lists, NO markdown, NO bold, NO headers. Do NOT open with a greeting, the reader's name, or throat-clearing like "Alright", "So", "Look", "Okay", or "Hey". Start directly with the insight.`;
+
+  if (tone === 'sharp') {
+    return `You are Signal — ${name}'s ${time} intelligence briefing. Write with precision and authority. No filler, no hedging, no soft qualifiers. Assume the reader is the sharpest person in the room. Every word earns its place. ${shared}`;
+  }
+  if (tone === 'bold') {
+    return `You are Signal — ${name}'s ${time} briefing with a point of view. Take clear editorial positions. Readers come for your actual take, not a summary of all sides. Be direct, be confident, have opinions. ${shared}`;
+  }
+  return `You are Signal — ${name}'s ${time} intelligence companion. Smart but relaxed — like a well-read friend catching you up over coffee. Intelligent but never stiff. Natural language, never forced. ${shared}`;
+}
+
+function buildUserPrompt(sectionLabel, items, depth) {
+  const depthNote = depth === 'quick'
+    ? 'Be tight and efficient — 4 to 5 sentences max.'
+    : depth === 'deep'
+    ? 'Go deep — connect the dots, give full context and perspective. Up to 8 sentences.'
+    : '';
+  const bullets = items.map((it, i) =>
+    `${i + 1}. ${it.title}${it.source ? ' (' + it.source + ')' : ''}`
+  ).join('\n');
+  return `Section: ${sectionLabel}\nToday's headlines:\n${bullets}\n\nWrite the briefing paragraph.${depthNote ? ' ' + depthNote : ''}`;
+}
+
+function getMaxTokens(depth) {
+  if (depth === 'quick') return 200;
+  if (depth === 'deep')  return 500;
+  return 350;
+}
+
+async function fetchCommentary(system, user) {
+  const depth     = profile ? profile.depth : 'balanced';
+  const maxTokens = getMaxTokens(depth);
+  const groqKey   = getGroqKey();
+  const providers = [];
+  if (groqKey) providers.push(() => callGroq(system, user, groqKey, maxTokens));
+  providers.push(() => callPollinations(system, user));
+
+  let lastErr = null;
+  for (const p of providers) {
+    try {
+      return cleanupLede(await p());
+    } catch (e) {
+      lastErr = e;
+      console.warn('LLM provider failed:', e.message);
+      await wait(500);
+    }
+  }
+  throw lastErr || new Error('all LLM providers failed');
+}
+
+async function callGroq(system, user, key, maxTokens = 350, attempt = 0) {
+  const res = await fetch(GROQ_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body:    JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user',   content: user },
+      ],
+      temperature: 0.88,
+      max_tokens:  maxTokens,
+    }),
+  });
+  if ((res.status === 429 || res.status >= 500) && attempt < 2) {
+    await wait(1500 * Math.pow(2, attempt));
+    return callGroq(system, user, key, maxTokens, attempt + 1);
+  }
+  if (res.status === 401) throw new Error('groq: invalid API key — open Settings and double-check');
+  if (!res.ok) throw new Error('groq failed: ' + res.status);
+  const data    = await res.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error('groq: no content');
+  return content;
+}
+
+async function callPollinations(system, user, attempt = 0) {
+  const res = await fetch(POLLINATIONS_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user',   content: user },
+      ],
+      model:   POLLINATIONS_MODEL,
+      private: true,
+      seed:    Math.floor(Math.random() * 1e9),
+    }),
+  });
+  if ((res.status === 429 || res.status >= 500) && attempt < 2) {
+    await wait(1500 * Math.pow(2, attempt));
+    return callPollinations(system, user, attempt + 1);
+  }
+  if (!res.ok) throw new Error('pollinations failed: ' + res.status);
+  const data    = await res.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error('pollinations: no content');
+  return content;
+}
+
+function cleanupLede(text) {
+  let t = text.trim();
+  t = t.replace(/^```[\s\S]*?```$/g, '').trim();
+  t = t.replace(/^#{1,6}\s.*$/gm, '').trim();
+  t = t.replace(/^\s*[-*•]\s+/gm, '');
+  t = t.replace(/\*\*(.*?)\*\*/g, '$1');
+  t = t.replace(/\*(.*?)\*/g, '$1');
+  t = t.replace(/^(yo|alright|okay|ok|so|look|hey|listen|well)[,\s]+/i, '');
+  return t.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean).join(' ');
+}
+
+/* ============================================================
+   SECTION 10 — RSS FETCHING
+   ============================================================ */
+
+async function fetchSection(section) {
+  const settled = await Promise.allSettled(section.feeds.map(fetchFeed));
+  const all = [];
+  settled.forEach(r => { if (r.status === 'fulfilled') all.push(...r.value); });
+  if (!all.length) throw new Error('rss: no items for section');
+  return dedupeAndSort(all).slice(0, HEADLINES_PER_SECTION);
+}
+
+async function fetchFeed(feedUrl) {
+  const url = RSS_PROXY + encodeURIComponent(feedUrl);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('rss failed: ' + res.status);
+  const data = await res.json();
+  if (!data || !Array.isArray(data.items)) return [];
+  return data.items.map(parseHeadline);
+}
+
+function parseHeadline(raw) {
+  let title  = raw.title || '';
+  let source = '';
+  const m = title.match(/^(.*) - ([^-]+)$/);
+  if (m) { title = m[1].trim(); source = m[2].trim(); }
+  return {
+    title,
+    source,
+    link:    raw.link    || '',
+    pubDate: raw.pubDate ? new Date(raw.pubDate).getTime() : 0,
+  };
+}
+
+function dedupeAndSort(items) {
+  const seen = new Map();
+  for (const it of items) {
+    const key = normalize(it.title);
+    if (!key) continue;
+    const existing = seen.get(key);
+    if (!existing) { seen.set(key, it); continue; }
+    const existingWSJ = /wsj|wall street journal/i.test(existing.source);
+    const incomingWSJ = /wsj|wall street journal/i.test(it.source);
+    if (incomingWSJ && !existingWSJ) seen.set(key, it);
+  }
+  return [...seen.values()].sort((a, b) => b.pubDate - a.pubDate);
+}
+
+function normalize(s) {
+  return String(s).toLowerCase()
+    .replace(/[''']/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+    .split(' ').slice(0, 8).join(' ');
+}
+
+/* ============================================================
+   SECTION 11 — EDGE TTS
+   ============================================================ */
+
+let currentAudio  = null;
+let stopRequested = false;
+let speaking      = false;
+
+/* ============================================================
+   SECTION 11 — VOICE & PLAYBACK
+   ============================================================ */
+
+// ── Helpers ───────────────────────────────────────────────────
+
+function buildSegments() {
+  const name  = profile ? profile.name : 'there';
+  const date  = formatDateline(new Date());
+  const intro = appMode === 'morning'
+    ? `Good morning, ${name}. Here's your Signal briefing for ${date}.`
+    : `Good afternoon, ${name}. Here's your Signal briefing for ${date}.`;
+  const segs  = [{ text: intro }];
+  for (const s of getSections()) {
+    const item = briefingData[s.key];
+    if (!item || !item.lede) continue;
+    segs.push({ text: s.label + '.' });
+    segs.push({ text: item.lede, highlightKey: s.key });
+  }
+  segs.push({ text: `That's your Signal. Stay sharp, ${name}.` });
+  return segs;
+}
+
+function markSpeaking(key) {
+  document.querySelectorAll('.section-lede.speaking').forEach(el => el.classList.remove('speaking'));
+  const el = $('briefing-content') && $('briefing-content').querySelector(`.section-lede[data-key="${key}"]`);
+  if (el) el.classList.add('speaking');
+}
+function clearSpeaking() {
+  document.querySelectorAll('.section-lede.speaking').forEach(el => el.classList.remove('speaking'));
+}
+
+// ── Controls ─────────────────────────────────────────────────
+
+async function onPlay() {
+  if (!Object.keys(briefingData).length) return;
+  // Resume if paused
+  if (currentAudio && currentAudio.paused && !stopRequested) { try { await currentAudio.play(); } catch(_){} return; }
+  if (!IS_HOSTED && 'speechSynthesis' in window && speechSynthesis.paused) { speechSynthesis.resume(); return; }
+  onStop();
+  IS_HOSTED ? await playOpenAIBriefing() : playWebSpeechBriefing();
+}
+
+function onPause() {
+  if (currentAudio && !currentAudio.paused) { currentAudio.pause(); return; }
+  if (!IS_HOSTED && 'speechSynthesis' in window && speechSynthesis.speaking) speechSynthesis.pause();
+}
+
+function onStop() {
+  stopRequested = true;
+  if (currentAudio) { try { currentAudio.pause(); } catch(_){} currentAudio = null; }
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  speaking = false;
+  clearSpeaking();
+}
+
+// ── Hosted: OpenAI TTS ────────────────────────────────────────
+
+async function playOpenAIBriefing() {
+  if (!OPENAI_KEY) { showError('OpenAI key not configured. Add OPENAI_KEY to the script.'); return; }
+  stopRequested = false;
+  const voiceId = getSavedVoiceId();
+  const segs    = buildSegments();
+
+  for (let i = 0; i < segs.length; i++) {
+    if (stopRequested) break;
+    const seg = segs[i];
+    setLoadingLabel('Loading voice');
+    $('state-loading').classList.add('visible');
+    try {
+      const res = await fetch(OPENAI_TTS_URL, {
+        method:  'POST',
+        headers: { 'Authorization': 'Bearer ' + OPENAI_KEY, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ model: 'tts-1-hd', input: seg.text, voice: voiceId }),
+      });
+      if (!res.ok) throw new Error('OpenAI TTS failed: ' + res.status);
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      currentAudio = new Audio(url);
+      if (seg.highlightKey) markSpeaking(seg.highlightKey);
+      $('state-loading').classList.remove('visible');
+      try { await currentAudio.play(); } catch(e) {
+        showError("Couldn't auto-play. Click Play again.");
+        URL.revokeObjectURL(url); clearSpeaking(); return;
+      }
+      await new Promise(res => { currentAudio.onended = res; currentAudio.onerror = res; });
+      URL.revokeObjectURL(url);
+      clearSpeaking();
+    } catch(e) {
+      $('state-loading').classList.remove('visible');
+      showError('Voice error: ' + e.message);
+      break;
+    }
+  }
+  currentAudio = null;
+  $('state-loading').classList.remove('visible');
+}
+
+// ── Local: Web Speech API ─────────────────────────────────────
+
+function playWebSpeechBriefing() {
+  if (!('speechSynthesis' in window)) { showError('Your browser does not support voice playback.'); return; }
+  const voiceId  = getSavedVoiceId();
+  const voiceDef = SIGNAL_VOICES.find(v => v.id === voiceId);
+  const langPref = voiceDef?.webSpeech || 'en-US';
+
+  // Pick the best available voice matching the lang preference
+  const voices   = speechSynthesis.getVoices();
+  const pick     = voices.find(v => v.lang.startsWith(langPref) && /premium|enhanced|neural|siri/i.test(v.name))
+                || voices.find(v => v.lang.startsWith(langPref))
+                || voices.find(v => v.lang.startsWith('en'))
+                || voices[0] || null;
+
+  const segs = buildSegments();
+  speaking   = true;
+  segs.forEach((seg, i) => {
+    const u = new SpeechSynthesisUtterance(seg.text);
+    if (pick) u.voice = pick;
+    u.rate = 1.0; u.pitch = 1.0; u.volume = 1.0;
+    u.onstart = () => { if (seg.highlightKey) markSpeaking(seg.highlightKey); };
+    u.onend   = () => {
+      if (seg.highlightKey) clearSpeaking();
+      if (i === segs.length - 1) { speaking = false; }
+    };
+    speechSynthesis.speak(u);
+  });
+}
+
+/* ============================================================
+   SECTION 12 — VOICE SYSTEM
+   ============================================================ */
+
+function getSavedVoiceId() {
+  const saved = localStorage.getItem(SIGNAL_VOICE_KEY);
+  return SIGNAL_VOICES.find(v => v.id === saved) ? saved : DEFAULT_SIGNAL_VOICE;
+}
+
+function updateVoiceNameDisplay() {
+  const voice = SIGNAL_VOICES.find(v => v.id === getSavedVoiceId());
+  const el    = $('current-voice-name');
+  if (el && voice) el.textContent = voice.label;
+}
+
+/* ============================================================
+   SECTION 13 — PROFILE PAGE
+   ============================================================ */
+
+function renderProfile() {
+  const container = $('profile-view');
+  if (!container || !profile) return;
+
+  const streakCount    = getStreak().count;
+  const identityLabels = (profile.identities || [])
+    .map(k => IDENTITIES.find(i => i.key === k)?.label).filter(Boolean);
+
+  const tierLabel = profile.tier === 'pro' ? 'Signal Pro'
+    : profile.tier === 'annual' ? 'Signal Annual'
+    : profile.tier === 'trial'  ? '7-Day Trial'
+    : 'Free';
+
+  const tierClass  = (profile.tier === 'pro' || profile.tier === 'annual') ? 'pro'
+    : profile.tier === 'trial' ? 'trial' : 'free';
+
+  const isPremium  = profile.tier === 'pro' || profile.tier === 'annual' || profile.tier === 'trial';
+
+  const planFeatures = isPremium
+    ? ['Unlimited briefings per day', 'All selected topics', 'Premium voice narration', 'Full Explore tab']
+    : ['1 briefing per day', '2 topics max', 'Standard voice'];
+
+  const currentVoiceId = getSavedVoiceId();
+  const depthLabel  = DEPTH_OPTIONS.find(d => d.key === profile.depth)?.label || profile.depth;
+  const toneLabel   = TONE_OPTIONS.find(t => t.key === profile.tone)?.label   || profile.tone;
+
+  const savedStories = getSaved();
+
+  container.innerHTML = `
+    <div style="padding-top:8px">
+
+      <!-- ── Account ── -->
+      <div class="profile-section">
+        <div class="profile-section-label">Account</div>
+        <div class="profile-card">
+          <div class="profile-name-row">
+            <div class="profile-name-display" id="prof-name-display">${escapeHtml(profile.name)}</div>
+            <button class="profile-edit-btn" id="prof-name-edit-btn">Edit</button>
+          </div>
+          ${identityLabels.length > 0 ? `
+          <div class="profile-identity-tags">
+            ${identityLabels.map(l => `<span class="profile-identity-tag">${escapeHtml(l)}</span>`).join('')}
+          </div>` : ''}
+          ${streakCount >= 1 ? `
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--rule)">
+            <div style="font-size:22px;font-weight:700;color:var(--gold);font-family:var(--sans);margin-bottom:4px">🔥 ${streakCount} day${streakCount !== 1 ? ' streak' : ' streak'}</div>
+            <div style="font-size:12px;color:var(--muted)">Keep your streak alive — come back tomorrow.</div>
+          </div>` : ''}
+
+          <!-- Theme toggle -->
+          <div class="profile-theme-row" style="${streakCount >= 1 ? '' : 'margin-top:16px;padding-top:16px;border-top:1px solid var(--rule);'}">
+            <div class="profile-theme-label">
+              <span>${getCurrentTheme() === 'dark' ? '🌙' : '☀️'}</span>
+              <span>Appearance</span>
+            </div>
+            <label class="theme-switch">
+              <input type="checkbox" id="theme-profile-switch" ${getCurrentTheme() === 'light' ? 'checked' : ''} />
+              <div class="theme-switch-track"></div>
+              <div class="theme-switch-thumb" id="theme-switch-thumb">${getCurrentTheme() === 'light' ? '☀️' : '🌙'}</div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Saved Stories ── -->
+      <div class="profile-section">
+        <div class="profile-section-label">Saved</div>
+        <div id="prof-saved-list">
+          ${savedStories.length === 0
+            ? `<p style="text-align:center;color:var(--muted);font-style:italic;font-size:14px;padding:20px 0">Stories you save will appear here. Tap the bookmark on any headline.</p>`
+            : savedStories.map(s => `
+              <div class="saved-story-card" data-link="${escapeHtml(s.link)}">
+                <div class="saved-story-body">
+                  <a class="saved-story-title" href="${escapeHtml(s.link)}" target="_blank" rel="noopener">${escapeHtml(s.title)}</a>
+                  <div class="saved-story-meta">
+                    ${s.source ? `<span class="saved-story-src">${escapeHtml(s.source)}</span>` : ''}
+                    <span class="saved-story-section">${escapeHtml(s.sectionName)}</span>
+                  </div>
+                </div>
+                <button class="saved-story-remove" aria-label="Remove saved story" data-link="${escapeHtml(s.link)}">×</button>
+              </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- ── My Signal ── -->
+      <div class="profile-section">
+        <div class="profile-section-label">My Signal</div>
+
+        <div class="profile-card" style="margin-bottom:12px">
+          <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600">Topics</div>
+          <div class="profile-interest-chips" id="prof-chips"></div>
+          <button class="profile-edit-btn" id="prof-add-interest" style="margin-top:4px">+ Add more</button>
+        </div>
+
+        <div class="profile-card">
+          <div class="profile-pref-row">
+            <span class="profile-pref-label">Briefing depth</span>
+            <span class="profile-pref-value">${escapeHtml(depthLabel)}</span>
+          </div>
+          <div class="profile-pref-row">
+            <span class="profile-pref-label">Tone</span>
+            <span class="profile-pref-value">${escapeHtml(toneLabel)}</span>
+          </div>
+          <div class="profile-pref-row">
+            <span class="profile-pref-label">Schedule</span>
+            <span class="profile-pref-value">${(profile.schedule || []).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ') || '—'}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Plan ── -->
+      <div class="profile-section">
+        <div class="profile-section-label">Plan</div>
+        <div class="profile-card">
+          <div class="profile-plan-badge ${tierClass}">${isPremium ? '★ ' : ''}${escapeHtml(tierLabel)}</div>
+          <ul class="profile-plan-features">
+            ${planFeatures.map(f => `<li>${escapeHtml(f)}</li>`).join('')}
+          </ul>
+          ${!isPremium
+            ? `<button class="profile-upgrade-btn" id="prof-upgrade-btn">★ Upgrade to Signal Pro</button>`
+            : `<div style="font-size:12px;color:var(--muted);text-align:center">Manage your plan — Stripe integration coming soon.</div>`
+          }
+        </div>
+      </div>
+
+      <!-- ── Narration ── -->
+      <div class="profile-section">
+        <div class="profile-section-label">Narration</div>
+        <div class="profile-voice-options" id="prof-voice-opts">
+          ${SIGNAL_VOICES.map(v => `
+            <div class="profile-voice-option${v.id === currentVoiceId ? ' selected' : ''}" data-voice-id="${v.id}">
+              <div>
+                <div class="profile-voice-name">${escapeHtml(v.label)}</div>
+                <div class="profile-voice-desc">${escapeHtml(v.desc)}</div>
+              </div>
+              <span class="profile-voice-check">✓</span>
+            </div>`).join('')}
+        </div>
+      </div>
+
+    </div>`;
+
+  // Wire: interest chips remove
+  renderProfileChips();
+
+  // Wire: name edit
+  $('prof-name-edit-btn').addEventListener('click', () => startNameEdit());
+
+  // Wire theme switch in profile
+  const profileSwitch = $('theme-profile-switch');
+  if (profileSwitch) {
+    profileSwitch.addEventListener('change', () => {
+      applyTheme(profileSwitch.checked ? 'light' : 'dark');
+    });
+  }
+
+  // Wire: add interest
+  $('prof-add-interest').addEventListener('click', openInterestPicker);
+
+  // Wire: upgrade button
+  const upBtn = $('prof-upgrade-btn');
+  if (upBtn) upBtn.addEventListener('click', () => {
+    // Simulate upgrade — future Stripe hook
+    profile.tier = 'pro';
+    saveProfile(profile);
+    renderProfile();
+  });
+
+  // Wire: saved story remove buttons
+  container.querySelectorAll('.saved-story-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const link = btn.dataset.link;
+      let saved  = getSaved().filter(s => s.link !== link);
+      localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
+      renderProfile(); // re-render to update list
+    });
+  });
+
+  // Wire: voice picker
+  container.querySelectorAll('.profile-voice-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const id = opt.dataset.voiceId;
+      localStorage.setItem(SIGNAL_VOICE_KEY, id);
+      container.querySelectorAll('.profile-voice-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      updateVoiceNameDisplay();
+    });
+  });
+}
+
+function renderProfileChips() {
+  const chips = $('prof-chips');
+  if (!chips || !profile) return;
+  chips.innerHTML = '';
+  profile.interests.forEach(key => {
+    const label = INTEREST_MAP[key]?.label || key;
+    const chip  = document.createElement('div');
+    chip.className = 'profile-interest-chip';
+    chip.innerHTML = `${escapeHtml(label)}<button class="profile-chip-remove" aria-label="Remove ${escapeHtml(label)}">×</button>`;
+    chip.querySelector('.profile-chip-remove').addEventListener('click', () => {
+      if (profile.interests.length <= 1) return; // keep at least 1
+      profile.interests = profile.interests.filter(k => k !== key);
+      saveProfile(profile);
+      renderProfileChips();
+    });
+    chips.appendChild(chip);
+  });
+}
+
+function startNameEdit() {
+  const display = $('prof-name-display');
+  const editBtn = $('prof-name-edit-btn');
+  if (!display || !editBtn) return;
+
+  const input = document.createElement('input');
+  input.className   = 'profile-name-input';
+  input.value       = profile.name;
+  input.maxLength   = 32;
+  display.replaceWith(input);
+  editBtn.textContent = 'Save';
+  input.focus();
+
+  const save = () => {
+    const val = input.value.trim();
+    if (val) { profile.name = val; saveProfile(profile); }
+    renderProfile(); // re-render to restore display
+    updateMasthead();
+  };
+
+  editBtn.onclick = save;
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+}
+
+function openInterestPicker() {
+  const overlay = document.createElement('div');
+  overlay.className = 'interest-picker-overlay';
+  const userSet = new Set(profile.interests);
+
+  overlay.innerHTML = `
+    <div class="interest-picker-sheet">
+      <div class="interest-picker-header">
+        <div class="interest-picker-title">Add to my Signal</div>
+        <button class="interest-picker-close" id="picker-close">×</button>
+      </div>
+      <div class="interest-picker-grid">
+        ${INTEREST_KEYS.map(key => {
+          const info     = INTEREST_MAP[key];
+          const inSignal = userSet.has(key);
+          return `<button class="interest-picker-item${inSignal ? ' selected' : ''}" data-key="${key}">
+            ${escapeHtml(info.label)}
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#picker-close').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+  overlay.querySelectorAll('.interest-picker-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.key;
+      if (profile.interests.includes(key)) {
+        if (profile.interests.length > 1) {
+          profile.interests = profile.interests.filter(k => k !== key);
+          btn.classList.remove('selected');
+        }
+      } else {
+        profile.interests.push(key);
+        btn.classList.add('selected');
+      }
+      saveProfile(profile);
+      renderProfileChips();
+    });
+  });
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+
+/* ============================================================
+   THEME SYSTEM
+   ============================================================ */
+
+const THEME_KEY = 'signal:theme';
+
+const MOON_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+const SUN_SVG  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+
+function getCurrentTheme() {
+  return localStorage.getItem(THEME_KEY) || 'dark';
+}
+
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.documentElement.classList.add('theme-light');
+  } else {
+    document.documentElement.classList.remove('theme-light');
+  }
+  localStorage.setItem(THEME_KEY, theme);
+  updateThemeToggleIcons(theme);
+}
+
+function toggleTheme() {
+  applyTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark');
+}
+
+function updateThemeToggleIcons(theme) {
+  // Header button — show moon when dark (click to go light), sun when light (click to go dark)
+  const btn = $('theme-toggle-btn');
+  if (btn) btn.innerHTML = theme === 'dark' ? MOON_SVG : SUN_SVG;
+
+  // Profile switch (if rendered)
+  const profileSwitch = document.getElementById('theme-profile-switch');
+  if (profileSwitch) profileSwitch.checked = theme === 'light';
+  const thumb = document.getElementById('theme-switch-thumb');
+  if (thumb) thumb.textContent = theme === 'light' ? '☀️' : '🌙';
+}
+
+function initTheme() {
+  applyTheme(getCurrentTheme());
+  const btn = $('theme-toggle-btn');
+  if (btn) btn.addEventListener('click', toggleTheme);
+}
+
+/* ============================================================
+   END OF ALL SECTIONS — BOOT
+   ============================================================ */
+
+initTheme();
+init();
+
+})(); // end IIFE
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Old versions
+signal-app/
+signal-app.zip
+
+# Claude internal
+.claude/
+
+# Editor
+.vscode/
+.idea/
