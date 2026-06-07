@@ -2402,7 +2402,6 @@ const HEADLINES_PER_SECTION  = 8;
 const HEADLINES_FOR_PROMPT   = 8;
 const POLLINATIONS_URL   = 'https://text.pollinations.ai/openai';
 const POLLINATIONS_MODEL = 'openai';
-const GROQ_URL           = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL         = 'llama-3.3-70b-versatile';
 
 // ── Environment & voice ───────────────────────────────────────
@@ -2412,11 +2411,11 @@ const OPENAI_TTS_URL = 'https://api.openai.com/v1/audio/speech';
 
 // 3 curated voices — OpenAI IDs used when hosted, Web Speech label used locally
 const SIGNAL_VOICES = [
-  { id: 'onyx',    label: 'Signal Classic', desc: 'Deep, authoritative male',     webSpeech: 'en-US' },
-  { id: 'nova',    label: 'Signal Clear',   desc: 'Warm, articulate female',      webSpeech: 'en-US' },
-  { id: 'shimmer', label: 'Signal Pro',     desc: 'Crisp, professional female',   webSpeech: 'en-GB' },
+  { id: 'onwK4e9ZLuTAKqWW03F9', label: 'Signal Classic', desc: 'Radio news host, professional', webSpeech: 'en-US' },
+  { id: 'FZExFxPKpHCbHLnbPFkX', label: 'Signal Chill',   desc: 'Casual, relaxed male',          webSpeech: 'en-US' },
+  { id: 'XB0fDUnXU5powFXDhCwa', label: 'Signal Clear',   desc: 'Warm, modern female',           webSpeech: 'en-GB' },
 ];
-const DEFAULT_SIGNAL_VOICE = 'onyx';
+const DEFAULT_SIGNAL_VOICE = 'onwK4e9ZLuTAKqWW03F9';
 const SIGNAL_VOICE_KEY     = 'signal:voice';
 
 // ── Onboarding: Identity options ──────────────────────────────
@@ -2781,7 +2780,7 @@ function escapeHtml(s) {
 }
 
 function getGroqKey() {
-  return GROQ_KEY.trim();
+  return true; // key lives in Vercel env var, always available
 }
 
 function humanizeError(e) {
@@ -3642,9 +3641,7 @@ function renderSections(sections) {
     }
 
     // Fetch one landscape image for the section lede
-    if (PEXELS_KEY) {
-      fetchSectionImage(s.label, s.key).catch(() => {});
-    }
+    fetchSectionImage(s.label, s.key).catch(() => {});
 
     // Wire bookmark buttons
     el.querySelectorAll('.hl-bookmark').forEach(btn => {
@@ -3729,10 +3726,9 @@ async function shareSection(key, label, items) {
 
 async function fetchSectionImage(interestLabel, sectionKey) {
   try {
-    const res = await fetch(
-      `https://api.pexels.com/v1/search?query=${encodeURIComponent(interestLabel)}&per_page=3&orientation=landscape`,
-      { headers: { Authorization: PEXELS_KEY } }
-    );
+    const page = Math.floor(Math.random() * 10) + 1;
+    const params = new URLSearchParams({ query: interestLabel, per_page: '3', orientation: 'landscape', page: String(page) });
+    const res = await fetch(`/api/pexels?${params}`);
     if (!res.ok) return;
     const data = await res.json();
     const photos = data?.photos;
@@ -4071,9 +4067,8 @@ function getMaxTokens(depth) {
 async function fetchCommentary(system, user) {
   const depth     = profile ? profile.depth : 'balanced';
   const maxTokens = getMaxTokens(depth);
-  const groqKey   = getGroqKey();
   const providers = [];
-  if (groqKey) providers.push(() => callGroq(system, user, groqKey, maxTokens));
+  providers.push(() => callGroq(system, user, maxTokens));
   providers.push(() => callPollinations(system, user));
 
   let lastErr = null;
@@ -4089,10 +4084,10 @@ async function fetchCommentary(system, user) {
   throw lastErr || new Error('all LLM providers failed');
 }
 
-async function callGroq(system, user, key, maxTokens = 350, attempt = 0) {
-  const res = await fetch(GROQ_URL, {
+async function callGroq(system, user, maxTokens = 350, attempt = 0) {
+  const res = await fetch('/api/groq', {
     method:  'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({
       model: GROQ_MODEL,
       messages: [
@@ -4105,9 +4100,9 @@ async function callGroq(system, user, key, maxTokens = 350, attempt = 0) {
   });
   if ((res.status === 429 || res.status >= 500) && attempt < 2) {
     await wait(1500 * Math.pow(2, attempt));
-    return callGroq(system, user, key, maxTokens, attempt + 1);
+    return callGroq(system, user, maxTokens, attempt + 1);
   }
-  if (res.status === 401) throw new Error('groq: invalid API key — open Settings and double-check');
+  if (res.status === 401) throw new Error('groq: invalid API key — check Vercel env vars');
   if (!res.ok) throw new Error('groq failed: ' + res.status);
   const data    = await res.json();
   const content = data?.choices?.[0]?.message?.content;
@@ -4253,7 +4248,7 @@ async function onPlay() {
   if (currentAudio && currentAudio.paused && !stopRequested) { try { await currentAudio.play(); } catch(_){} return; }
   if (!IS_HOSTED && 'speechSynthesis' in window && speechSynthesis.paused) { speechSynthesis.resume(); return; }
   onStop();
-  IS_HOSTED ? await playOpenAIBriefing() : playWebSpeechBriefing();
+  await playElevenLabsBriefing();
 }
 
 function onPause() {
@@ -4269,10 +4264,9 @@ function onStop() {
   clearSpeaking();
 }
 
-// ── Hosted: OpenAI TTS ────────────────────────────────────────
+// ── ElevenLabs TTS ────────────────────────────────────────────
 
-async function playOpenAIBriefing() {
-  if (!OPENAI_KEY) { showError('OpenAI key not configured. Add OPENAI_KEY to the script.'); return; }
+async function playElevenLabsBriefing() {
   stopRequested = false;
   const voiceId = getSavedVoiceId();
   const segs    = buildSegments();
@@ -4283,12 +4277,12 @@ async function playOpenAIBriefing() {
     setLoadingLabel('Loading voice');
     $('state-loading').classList.add('visible');
     try {
-      const res = await fetch(OPENAI_TTS_URL, {
+      const res = await fetch('/api/elevenlabs', {
         method:  'POST',
-        headers: { 'Authorization': 'Bearer ' + OPENAI_KEY, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ model: 'tts-1-hd', input: seg.text, voice: voiceId }),
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ voice_id: voiceId, text: seg.text }),
       });
-      if (!res.ok) throw new Error('OpenAI TTS failed: ' + res.status);
+      if (!res.ok) throw new Error('ElevenLabs TTS failed: ' + res.status);
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       currentAudio = new Audio(url);
@@ -4298,13 +4292,14 @@ async function playOpenAIBriefing() {
         showError("Couldn't auto-play. Click Play again.");
         URL.revokeObjectURL(url); clearSpeaking(); return;
       }
-      await new Promise(res => { currentAudio.onended = res; currentAudio.onerror = res; });
+      await new Promise(resolve => { currentAudio.onended = resolve; currentAudio.onerror = resolve; });
       URL.revokeObjectURL(url);
       clearSpeaking();
     } catch(e) {
       $('state-loading').classList.remove('visible');
-      showError('Voice error: ' + e.message);
-      break;
+      console.warn('ElevenLabs failed, falling back to Web Speech:', e.message);
+      playWebSpeechBriefing();
+      return;
     }
   }
   currentAudio = null;
