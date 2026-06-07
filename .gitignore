@@ -21,3 +21,4 @@ signal-app.zip
 # Editor
 .vscode/
 .idea/
+.vercel
