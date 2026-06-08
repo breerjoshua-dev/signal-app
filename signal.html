@@ -338,7 +338,7 @@ button { font-family: var(--sans); }
 /* Interests grid — exactly 3 columns = 7 clean rows for 21 items */
 .ob-interests-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 .ob-interest-card {
@@ -380,6 +380,23 @@ button { font-family: var(--sans); }
   margin-bottom: 5px;
 }
 
+/* Interest cards — pill style */
+.ob-interest-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-align: center;
+  border-radius: 999px;
+  padding: 11px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ob-interest-card .ic-emoji { font-size: 15px; flex-shrink: 0; }
+
 /* Single-select options */
 .ob-options { display: flex; flex-direction: column; gap: 10px; }
 .ob-option {
@@ -398,6 +415,33 @@ button { font-family: var(--sans); }
 
 /* Multi-select schedule options (same visual as ob-option) */
 .ob-option.multi-selected { border-color: var(--accent); background: var(--accent-dim); }
+
+/* Goals grid — Step 5 */
+.ob-goals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+.ob-goal-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 14px 18px;
+  background: var(--surface);
+  border: 1.5px solid var(--surface-3);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), transform 0.12s ease;
+  user-select: none;
+  text-align: center;
+}
+.ob-goal-card:hover { border-color: var(--accent-border); background: var(--surface-2); transform: translateY(-1px); }
+.ob-goal-card.selected { border-color: var(--accent); background: var(--accent-dim); }
+.ob-goal-icon  { font-size: 28px; line-height: 1; }
+.ob-goal-label { font-size: 13px; font-weight: 600; color: var(--ink-soft); line-height: 1.35; }
+.ob-goal-card.selected .ob-goal-label { color: var(--ink); }
 
 /* CTA button */
 .ob-cta {
@@ -1052,8 +1096,8 @@ button { font-family: var(--sans); }
   font-weight: 600;
 }
 
-/* Shift main content right when sidebar is visible */
-.app-content.has-sidebar { margin-left: 200px; }
+/* Shift main content right when sidebar is visible — fill all remaining space */
+.app-content.has-sidebar { margin-left: 200px; margin-right: 0; max-width: none; }
 
 /* Mobile pill row (shown on small screens instead of sidebar) */
 .section-nav-pills-mobile {
@@ -1692,6 +1736,9 @@ ol.headlines li {
   padding: 7px 14px;
   border-radius: var(--radius-xs);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transition: border-color var(--transition), color var(--transition);
 }
 .audio-btn:hover { border-color: var(--accent-border); color: var(--ink); }
@@ -2254,7 +2301,7 @@ ol.headlines .hl-src {
 /* ── Large desktop (1280px+) — give content more breathing room ── */
 @media (min-width: 1280px) {
   :root { --content-max: 860px; --content-pad: 56px; }
-  .app-content.has-sidebar { margin-left: 200px; }
+  .app-content.has-sidebar { margin-left: 200px; margin-right: 0; max-width: none; }
 }
 
 </style>
@@ -2324,11 +2371,6 @@ ol.headlines .hl-src {
         <hr class="masthead-rule" />
       </header>
 
-      <!-- Mobile section pills — hidden on desktop, visible on ≤768px -->
-      <div class="section-nav-pills-mobile" id="section-pills-mobile">
-        <div class="section-nav-pills-mobile-inner" id="section-pills-mobile-inner"></div>
-      </div>
-
       <div class="briefing-controls">
         <div class="mode-toggle" role="group" aria-label="Edition">
           <button id="mode-morning"   class="mode-btn active">Morning</button>
@@ -2339,12 +2381,17 @@ ol.headlines .hl-src {
 
       <div id="audio-wrap" class="audio-wrap" aria-live="polite">
         <div class="audio-bar">
-          <button id="play-btn"  class="audio-btn">▶ Play</button>
-          <button id="pause-btn" class="audio-btn">⏸ Pause</button>
-          <button id="stop-btn"  class="audio-btn">⏹ Stop</button>
+          <button id="play-btn"  class="audio-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><polygon points="2,1 13,7 2,13"/></svg> Play</button>
+          <button id="pause-btn" class="audio-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="1" width="4" height="12" rx="1"/><rect x="8" y="1" width="4" height="12" rx="1"/></svg> Pause</button>
+          <button id="stop-btn"  class="audio-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="2" width="10" height="10" rx="1.5"/></svg> Stop</button>
           <span class="audio-label" style="margin-left:auto">Voice</span>
           <span id="current-voice-name" style="font-size:12px;color:var(--ink-soft);font-weight:500">Signal Classic</span>
         </div>
+      </div>
+
+      <!-- Mobile section pills — below audio controls, above content -->
+      <div class="section-nav-pills-mobile" id="section-pills-mobile">
+        <div class="section-nav-pills-mobile-inner" id="section-pills-mobile-inner"></div>
       </div>
 
       <div id="errbox" class="errbox" role="alert"></div>
@@ -2691,6 +2738,30 @@ const INTEREST_MAP = {
 };
 
 // ── Ordered interest keys — 21 items, 3 columns = 7 clean rows ─
+const INTEREST_EMOJI = {
+  'ai':              '🤖',
+  'markets':         '📈',
+  'venture-capital': '🚀',
+  'technology':      '💻',
+  'geopolitics':     '🌍',
+  'business':        '🏢',
+  'crypto':          '₿',
+  'science':         '🔬',
+  'culture':         '🎨',
+  'sports-business': '🏆',
+  'real-estate':     '🏠',
+  'energy-climate':  '⚡',
+  'healthcare':      '🧬',
+  'economic-policy': '📊',
+  'leadership':      '💼',
+  'philosophy':      '🧠',
+  'film':            '🎬',
+  'music':           '🎵',
+  'personal-finance':'💰',
+  'food':            '🍽️',
+  'fashion':         '👗',
+};
+
 const INTEREST_KEYS = [
   'ai',              'markets',        'venture-capital',
   'technology',      'geopolitics',    'business',
@@ -2871,12 +2942,24 @@ const obData = {
   name:       '',
   identities: [],   // multi-select — array of identity keys
   interests:  [],
+  goal:       '',
   depth:      '',
   tone:       '',
   schedule:   [],
 };
 
-const TOTAL_STEPS = 7; // Paywall is an overlay, not a numbered step
+const TOTAL_STEPS = 8; // Paywall is an overlay, not a numbered step
+
+const GOAL_OPTIONS = [
+  { key: 'career',   icon: '🚀', label: 'Stay ahead in my career' },
+  { key: 'world',    icon: '💡', label: 'Understand the world better' },
+  { key: 'finance',  icon: '📈', label: 'Make smarter financial decisions' },
+  { key: 'global',   icon: '🌍', label: 'Be more globally aware' },
+  { key: 'critical', icon: '🧠', label: 'Think deeper and more critically' },
+  { key: 'fast',     icon: '⚡', label: 'Move faster than everyone else' },
+  { key: 'industry', icon: '🎯', label: 'Master my industry' },
+  { key: 'grow',     icon: '🌱', label: 'Grow as a person' },
+];
 
 // ── Step navigation ───────────────────────────────────────────
 
@@ -2976,6 +3059,7 @@ function renderAllSteps() {
   renderStep5(stepEls[4]);
   renderStep6(stepEls[5]);
   renderStep7(stepEls[6]);
+  renderStep8(stepEls[7]);
 }
 
 // Step 1 — Welcome
@@ -3089,11 +3173,14 @@ function renderStep4(el) {
   const cta     = $('s4-cta');
 
   INTEREST_KEYS.forEach(key => {
-    const info = INTEREST_MAP[key];
-    const card = document.createElement('div');
+    const info  = INTEREST_MAP[key];
+    const emoji = INTEREST_EMOJI[key] || '';
+    const card  = document.createElement('div');
     card.className = 'ob-interest-card' + (obData.interests.includes(key) ? ' selected' : '');
     card.dataset.key = key;
-    card.textContent = info.label;
+    card.innerHTML = emoji
+      ? `<span class="ic-emoji">${emoji}</span><span>${escapeHtml(info.label)}</span>`
+      : escapeHtml(info.label);
     card.addEventListener('click', () => {
       const idx = obData.interests.indexOf(key);
       if (idx === -1) obData.interests.push(key);
@@ -3123,44 +3210,75 @@ function renderStep4(el) {
   cta.addEventListener('click', () => { if (obData.interests.length >= 3) goToStep(5); });
 }
 
-// Step 5 — Depth
+// Step 5 — Goals
 function renderStep5(el) {
+  el.innerHTML = `
+    <div class="ob-step-inner">
+      <h2 class="ob-question">What's your biggest goal right now?</h2>
+      <p class="ob-subtext">Signal will prioritize what matters most to you.</p>
+      <div class="ob-goals-grid" id="s5-grid"></div>
+      <button class="ob-cta" id="s5-cta" disabled>Continue</button>
+    </div>`;
+
+  const grid = $('s5-grid');
+  const cta  = $('s5-cta');
+
+  GOAL_OPTIONS.forEach(({ key, icon, label }) => {
+    const card = document.createElement('div');
+    card.className = 'ob-goal-card' + (obData.goal === key ? ' selected' : '');
+    card.dataset.key = key;
+    card.innerHTML = `<span class="ob-goal-icon">${icon}</span><span class="ob-goal-label">${escapeHtml(label)}</span>`;
+    card.addEventListener('click', () => {
+      obData.goal = key;
+      grid.querySelectorAll('.ob-goal-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      cta.disabled = false;
+    });
+    grid.appendChild(card);
+  });
+
+  if (obData.goal) cta.disabled = false;
+  cta.addEventListener('click', () => { if (obData.goal) goToStep(6); });
+}
+
+// Step 6 — Depth
+function renderStep6(el) {
   el.innerHTML = `
     <div class="ob-step-inner">
       <h2 class="ob-question">How deep do you want to go?</h2>
       <p class="ob-subtext">Sets the length and depth of every briefing.</p>
-      <div class="ob-options" id="s5-opts"></div>
-      <button class="ob-cta" id="s5-cta" disabled>Continue</button>
+      <div class="ob-options" id="s6-opts"></div>
+      <button class="ob-cta" id="s6-cta" disabled>Continue</button>
     </div>`;
-  renderSingleSelect('s5-opts', 's5-cta', DEPTH_OPTIONS, 'depth', () => goToStep(6));
+  renderSingleSelect('s6-opts', 's6-cta', DEPTH_OPTIONS, 'depth', () => goToStep(7));
 }
 
-// Step 6 — Tone
-function renderStep6(el) {
+// Step 7 — Tone
+function renderStep7(el) {
   el.innerHTML = `
     <div class="ob-step-inner">
       <h2 class="ob-question">How should Signal talk to you?</h2>
       <p class="ob-subtext">Your voice preference applies to every briefing and section.</p>
-      <div class="ob-options" id="s6-opts"></div>
-      <button class="ob-cta" id="s6-cta" disabled>Continue</button>
+      <div class="ob-options" id="s7-opts"></div>
+      <button class="ob-cta" id="s7-cta" disabled>Continue</button>
     </div>`;
-  renderSingleSelect('s6-opts', 's6-cta', TONE_OPTIONS, 'tone', () => goToStep(7));
+  renderSingleSelect('s7-opts', 's7-cta', TONE_OPTIONS, 'tone', () => goToStep(8));
 }
 
-// Step 7 — Schedule
-function renderStep7(el) {
+// Step 8 — Schedule
+function renderStep8(el) {
   el.innerHTML = `
     <div class="ob-step-inner">
       <h2 class="ob-question">When do you want your briefing?</h2>
       <p class="ob-subtext">Select all that apply. You can always change this later.</p>
-      <div class="ob-options" id="s7-opts"></div>
-      <div class="ob-confirm" id="s7-confirm"></div>
-      <button class="ob-cta" id="s7-cta" disabled>Continue</button>
+      <div class="ob-options" id="s8-opts"></div>
+      <div class="ob-confirm" id="s8-confirm"></div>
+      <button class="ob-cta" id="s8-cta" disabled>Continue</button>
     </div>`;
 
-  const optsEl   = $('s7-opts');
-  const confirm  = $('s7-confirm');
-  const cta      = $('s7-cta');
+  const optsEl   = $('s8-opts');
+  const confirm  = $('s8-confirm');
+  const cta      = $('s8-cta');
 
   SCHEDULE_OPTIONS.forEach(({ key, label, desc }) => {
     const card = document.createElement('div');
@@ -4215,19 +4333,12 @@ let speaking      = false;
 // ── Helpers ───────────────────────────────────────────────────
 
 function buildSegments() {
-  const name  = profile ? profile.name : 'there';
-  const date  = formatDateline(new Date());
-  const intro = appMode === 'morning'
-    ? `Good morning, ${name}. Here's your Signal briefing for ${date}.`
-    : `Good afternoon, ${name}. Here's your Signal briefing for ${date}.`;
-  const segs  = [{ text: intro }];
+  const segs = [];
   for (const s of getSections()) {
     const item = briefingData[s.key];
     if (!item || !item.lede) continue;
-    segs.push({ text: s.label + '.' });
     segs.push({ text: item.lede, highlightKey: s.key });
   }
-  segs.push({ text: `That's your Signal. Stay sharp, ${name}.` });
   return segs;
 }
 
@@ -4268,42 +4379,69 @@ function onStop() {
 
 async function playElevenLabsBriefing() {
   stopRequested = false;
-  const voiceId = getSavedVoiceId();
-  const segs    = buildSegments();
+  const voiceId  = getSavedVoiceId();
+  const segs     = buildSegments();
+  const playBtn  = $('play-btn');
+  const origHTML = playBtn ? playBtn.innerHTML : null;
+
+  if (!segs.length) return;
+
+  // Show "Loading..." on play button while first fetch completes
+  if (playBtn) playBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="2" width="10" height="10" rx="1.5"/></svg> Loading…';
 
   for (let i = 0; i < segs.length; i++) {
     if (stopRequested) break;
     const seg = segs[i];
-    setLoadingLabel('Loading voice');
-    $('state-loading').classList.add('visible');
+
+    // Fetch audio blob and verify it before attempting play
+    let url = null;
     try {
       const res = await fetch('/api/elevenlabs', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ voice_id: voiceId, text: seg.text }),
       });
-      if (!res.ok) throw new Error('ElevenLabs TTS failed: ' + res.status);
+      if (!res.ok) throw new Error('status ' + res.status);
       const blob = await res.blob();
-      const url  = URL.createObjectURL(blob);
-      currentAudio = new Audio(url);
-      if (seg.highlightKey) markSpeaking(seg.highlightKey);
-      $('state-loading').classList.remove('visible');
-      try { await currentAudio.play(); } catch(e) {
-        showError("Couldn't auto-play. Click Play again.");
-        URL.revokeObjectURL(url); clearSpeaking(); return;
-      }
-      await new Promise(resolve => { currentAudio.onended = resolve; currentAudio.onerror = resolve; });
+      if (!blob || blob.size < 100) throw new Error('empty audio response');
+      url = URL.createObjectURL(blob);
+    } catch(e) {
+      console.warn(`Segment ${i} fetch failed, skipping:`, e.message);
+      continue; // skip this segment, keep going
+    }
+
+    if (stopRequested) { URL.revokeObjectURL(url); break; }
+
+    // Restore play button label once first segment is ready
+    if (origHTML && playBtn) playBtn.innerHTML = origHTML;
+
+    currentAudio = new Audio(url);
+    if (seg.highlightKey) markSpeaking(seg.highlightKey);
+
+    try {
+      await currentAudio.play();
+    } catch(e) {
       URL.revokeObjectURL(url);
       clearSpeaking();
-    } catch(e) {
-      $('state-loading').classList.remove('visible');
-      console.warn('ElevenLabs failed, falling back to Web Speech:', e.message);
-      playWebSpeechBriefing();
-      return;
+      console.warn(`Segment ${i} play() rejected:`, e.message);
+      continue; // skip rather than crash
+    }
+
+    await new Promise(resolve => {
+      currentAudio.onended = resolve;
+      currentAudio.onerror = () => resolve();
+    });
+    URL.revokeObjectURL(url);
+    clearSpeaking();
+
+    // 0.5s gap between sections
+    if (i < segs.length - 1 && !stopRequested) {
+      await new Promise(r => setTimeout(r, 500));
     }
   }
+
+  if (origHTML && playBtn) playBtn.innerHTML = origHTML;
   currentAudio = null;
-  $('state-loading').classList.remove('visible');
 }
 
 // ── Local: Web Speech API ─────────────────────────────────────
