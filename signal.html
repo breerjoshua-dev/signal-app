@@ -2304,7 +2304,139 @@ ol.headlines .hl-src {
   .app-content.has-sidebar { margin-left: 200px; margin-right: 0; max-width: none; }
 }
 
+/* ── Auth overlay ─────────────────────────────────────────────── */
+#auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+#auth-overlay.visible { opacity: 1; pointer-events: all; }
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 48px 40px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.auth-wordmark {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 28px;
+}
+.auth-wordmark .dot { color: var(--accent); }
+.auth-heading {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+.auth-subtext {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+.auth-field { margin-bottom: 16px; }
+.auth-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.auth-input {
+  width: 100%;
+  padding: 13px 16px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.auth-input:focus { border-color: var(--accent); }
+.auth-input::placeholder { color: var(--muted); }
+.auth-error {
+  font-size: 13px;
+  color: #e05252;
+  margin-bottom: 12px;
+  display: none;
+  line-height: 1.4;
+}
+.auth-error.visible { display: block; }
+.auth-btn {
+  width: 100%;
+  padding: 15px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity 0.15s, transform 0.1s;
+  letter-spacing: 0.01em;
+}
+.auth-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.auth-btn:active:not(:disabled) { transform: translateY(0); }
+.auth-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.auth-switch {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 24px;
+}
+.auth-switch button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  font-family: var(--sans);
+  padding: 0;
+}
+.auth-switch button:hover { opacity: 0.8; }
+.step1-signin {
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.step1-signin button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+  padding: 0;
+}
+@media (max-width: 767px) {
+  .auth-card { padding: 36px 24px; }
+}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -2325,6 +2457,13 @@ ol.headlines .hl-src {
      PAYWALL OVERLAY (slides up over Step 8 preview)
      ============================================================ -->
 <div id="paywall-overlay" role="dialog" aria-modal="true" aria-label="Subscribe to Signal">
+  <!-- Content injected by JavaScript -->
+</div>
+
+<!-- ============================================================
+     AUTH OVERLAY (sign up / sign in)
+     ============================================================ -->
+<div id="auth-overlay" role="dialog" aria-modal="true" aria-label="Create your account">
   <!-- Content injected by JavaScript -->
 </div>
 
@@ -2435,6 +2574,12 @@ ol.headlines .hl-src {
 /* ============================================================
    SECTION 1 — CONSTANTS & DATA MODEL
    ============================================================ */
+
+// ── Supabase client ───────────────────────────────────────────
+const supabaseClient = window.supabase.createClient(
+  'https://nvipamvkqkrgakvzvxwp.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52aXBhbXZrcWtyZ2Frdnp2eHdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NzE5MjQsImV4cCI6MjA5NjI0NzkyNH0.OkzXNmaCDOPiFWP7uwqbGLmUvrQBlqyPMukp0REkbxE'
+);
 
 // ── Storage keys ──────────────────────────────────────────────
 const PROFILE_KEY = 'signal:profile';
@@ -2923,7 +3068,38 @@ function addInterestToProfile(key) {
    SECTION 4 — BOOT
    ============================================================ */
 
-function init() {
+async function init() {
+  // Try Supabase session first
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      const { data: dbProfile } = await supabaseClient
+        .from('profiles').select('*').eq('id', session.user.id).single();
+      if (dbProfile && dbProfile.interests && dbProfile.interests.length) {
+        profile = {
+          name:               dbProfile.name       || '',
+          identities:         [],
+          interests:          dbProfile.interests   || [],
+          goal:               dbProfile.goals       || '',
+          depth:              dbProfile.depth       || 'balanced',
+          tone:               dbProfile.tone        || 'conversational',
+          schedule:           dbProfile.schedule    || ['morning'],
+          tier:               dbProfile.plan        || 'free',
+          email:              session.user.email,
+          supabaseId:         session.user.id,
+          onboardingComplete: true,
+        };
+        saveProfile(profile);
+        $('onboarding').classList.add('hidden');
+        showApp();
+        return;
+      }
+    }
+  } catch(e) {
+    console.warn('Supabase session check failed, falling back to localStorage:', e.message);
+  }
+
+  // Fall back to localStorage
   profile = loadProfile();
   if (profile && profile.onboardingComplete) {
     $('onboarding').classList.add('hidden');
@@ -3069,8 +3245,10 @@ function renderStep1(el) {
       <h1 class="step1-wordmark">Signal<span class="dot">.</span></h1>
       <p class="step1-tagline">Your world, distilled.</p>
       <button class="step1-begin" id="step1-begin">Begin</button>
+      <div class="step1-signin"><span>Already have an account? </span><button id="step1-signin-btn">Sign in</button></div>
     </div>`;
   $('step1-begin').addEventListener('click', () => goToStep(2));
+  $('step1-signin-btn').addEventListener('click', () => showAuthScreen('signin'));
 }
 
 // Step 2 — Name
@@ -3436,29 +3614,182 @@ function buildTierHTML(key) {
 }
 
 function completeOnboarding(tier) {
-  profile = {
-    name:               obData.name,
-    identities:         obData.identities,
-    interests:          obData.interests,
-    depth:              obData.depth     || 'balanced',
-    tone:               obData.tone      || 'conversational',
-    schedule:           obData.schedule.length ? obData.schedule : ['morning'],
-    tier:               tier,
-    trialStart:         Date.now(),
-    onboardingComplete: true,
-  };
-  saveProfile(profile);
-
-  // Fade out paywall and onboarding, then show app
-  const overlay    = $('paywall-overlay');
-  const onboarding = $('onboarding');
+  obData.tier = tier;
+  // Dismiss paywall, show sign-up
+  const overlay = $('paywall-overlay');
   overlay.classList.remove('visible');
-  onboarding.classList.add('fade-out');
-  setTimeout(() => {
-    onboarding.classList.add('hidden');
-    overlay.style.display = 'none';
-    showApp();
-  }, 500);
+  setTimeout(() => showAuthScreen('signup'), 300);
+}
+
+/* ============================================================
+   SECTION 6A — AUTH (Supabase sign-up / sign-in)
+   ============================================================ */
+
+function showAuthScreen(mode) {
+  const overlay = $('auth-overlay');
+  const isSignUp = mode === 'signup';
+
+  overlay.innerHTML = `
+    <div class="auth-card">
+      <div class="auth-wordmark">Signal<span class="dot">.</span></div>
+      <h2 class="auth-heading" id="auth-heading">${isSignUp ? 'Create your account' : 'Welcome back'}</h2>
+      <p class="auth-subtext" id="auth-subtext">${isSignUp
+        ? 'Your personalized briefing is ready — create an account to save your profile.'
+        : 'Sign in to access your briefing and saved preferences.'
+      }</p>
+      <div class="auth-field">
+        <label class="auth-label" for="auth-email">Email</label>
+        <input class="auth-input" id="auth-email" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="auth-password">Password</label>
+        <input class="auth-input" id="auth-password" type="password" placeholder="${isSignUp ? 'Min 6 characters' : 'Your password'}" autocomplete="${isSignUp ? 'new-password' : 'current-password'}" />
+      </div>
+      <div class="auth-error" id="auth-error"></div>
+      <button class="auth-btn" id="auth-submit">${isSignUp ? 'Create Account' : 'Sign In'}</button>
+      <div class="auth-switch">
+        ${isSignUp
+          ? `Already have an account? <button id="auth-mode-switch">Sign in</button>`
+          : `New to Signal? <button id="auth-mode-switch">Create an account</button>`
+        }
+      </div>
+    </div>`;
+
+  overlay.classList.add('visible');
+
+  const emailEl    = $('auth-email');
+  const passEl     = $('auth-password');
+  const submitBtn  = $('auth-submit');
+  const errorEl    = $('auth-error');
+  const switchBtn  = $('auth-mode-switch');
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.classList.add('visible');
+  }
+  function clearError() { errorEl.classList.remove('visible'); }
+
+  submitBtn.addEventListener('click', async () => {
+    const email    = emailEl.value.trim();
+    const password = passEl.value;
+    clearError();
+
+    if (!email || !password) { showError('Please enter your email and password.'); return; }
+    if (isSignUp && password.length < 6) { showError('Password must be at least 6 characters.'); return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = isSignUp ? 'Creating account…' : 'Signing in…';
+
+    if (isSignUp) {
+      await doSignUp(email, password, showError, submitBtn);
+    } else {
+      await doSignIn(email, password, showError, submitBtn);
+    }
+  });
+
+  // Allow Enter key to submit
+  [emailEl, passEl].forEach(el => {
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') submitBtn.click(); });
+  });
+
+  switchBtn.addEventListener('click', () => showAuthScreen(isSignUp ? 'signin' : 'signup'));
+  emailEl.focus();
+}
+
+async function doSignUp(email, password, showError, submitBtn) {
+  try {
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) throw error;
+
+    // Save profile to Supabase profiles table
+    await supabaseClient.from('profiles').upsert({
+      id:        data.user.id,
+      name:      obData.name      || '',
+      interests: obData.interests || [],
+      goals:     obData.goal      || '',
+      tone:      obData.tone      || 'conversational',
+      depth:     obData.depth     || 'balanced',
+      schedule:  obData.schedule.length ? obData.schedule : ['morning'],
+      plan:      obData.tier      || 'free',
+    });
+
+    profile = {
+      name:               obData.name       || '',
+      identities:         obData.identities || [],
+      interests:          obData.interests  || [],
+      goal:               obData.goal       || '',
+      depth:              obData.depth      || 'balanced',
+      tone:               obData.tone       || 'conversational',
+      schedule:           obData.schedule.length ? obData.schedule : ['morning'],
+      tier:               obData.tier       || 'free',
+      trialStart:         Date.now(),
+      email:              email,
+      supabaseId:         data.user.id,
+      onboardingComplete: true,
+    };
+    saveProfile(profile);
+    dismissAuthAndShowApp();
+  } catch(e) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Create Account';
+    showError(e.message || 'Sign-up failed. Please try again.');
+  }
+}
+
+async function doSignIn(email, password, showError, submitBtn) {
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // Load their profile from Supabase
+    const { data: dbProfile } = await supabaseClient
+      .from('profiles').select('*').eq('id', data.user.id).single();
+
+    if (dbProfile && dbProfile.interests && dbProfile.interests.length) {
+      profile = {
+        name:               dbProfile.name       || '',
+        identities:         [],
+        interests:          dbProfile.interests   || [],
+        goal:               dbProfile.goals       || '',
+        depth:              dbProfile.depth       || 'balanced',
+        tone:               dbProfile.tone        || 'conversational',
+        schedule:           dbProfile.schedule    || ['morning'],
+        tier:               dbProfile.plan        || 'free',
+        email:              data.user.email,
+        supabaseId:         data.user.id,
+        onboardingComplete: true,
+      };
+      saveProfile(profile);
+      dismissAuthAndShowApp();
+    } else {
+      // Account exists but no profile — send through onboarding
+      $('auth-overlay').classList.remove('visible');
+      $('onboarding').classList.remove('hidden', 'fade-out');
+      startOnboarding();
+    }
+  } catch(e) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Sign In';
+    showError(e.message || 'Sign-in failed. Check your email and password.');
+  }
+}
+
+function dismissAuthAndShowApp() {
+  $('auth-overlay').classList.remove('visible');
+  const onboarding = $('onboarding');
+  if (onboarding) {
+    onboarding.classList.add('fade-out');
+    setTimeout(() => onboarding.classList.add('hidden'), 400);
+  }
+  showApp();
+}
+
+async function signOut() {
+  await supabaseClient.auth.signOut();
+  localStorage.removeItem(PROFILE_KEY);
+  profile = null;
+  // Reload to the clean welcome screen
+  window.location.reload();
 }
 
 /* ============================================================
@@ -4532,10 +4863,22 @@ function renderProfile() {
             <div class="profile-name-display" id="prof-name-display">${escapeHtml(profile.name)}</div>
             <button class="profile-edit-btn" id="prof-name-edit-btn">Edit</button>
           </div>
+          ${profile.email ? `
+          <div style="font-size:13px;color:var(--muted);margin-top:4px">${escapeHtml(profile.email)}</div>` : ''}
           ${identityLabels.length > 0 ? `
           <div class="profile-identity-tags">
             ${identityLabels.map(l => `<span class="profile-identity-tag">${escapeHtml(l)}</span>`).join('')}
           </div>` : ''}
+
+          <!-- Plan badge -->
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:700;margin-bottom:3px">Plan</div>
+              <div style="font-size:14px;font-weight:600;color:var(--ink)">${escapeHtml(tierLabel)}</div>
+            </div>
+            ${profile.supabaseId ? `<button id="prof-signout-btn" style="background:none;border:1px solid var(--rule);color:var(--muted);font-size:12px;font-weight:600;padding:7px 14px;border-radius:var(--radius-xs);cursor:pointer;font-family:var(--sans)">Sign out</button>` : ''}
+          </div>
+
           ${streakCount >= 1 ? `
           <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--rule)">
             <div style="font-size:22px;font-weight:700;color:var(--gold);font-family:var(--sans);margin-bottom:4px">🔥 ${streakCount} day${streakCount !== 1 ? ' streak' : ' streak'}</div>
@@ -4640,6 +4983,10 @@ function renderProfile() {
 
   // Wire: name edit
   $('prof-name-edit-btn').addEventListener('click', () => startNameEdit());
+
+  // Wire: sign out
+  const signOutBtn = $('prof-signout-btn');
+  if (signOutBtn) signOutBtn.addEventListener('click', () => signOut());
 
   // Wire theme switch in profile
   const profileSwitch = $('theme-profile-switch');
