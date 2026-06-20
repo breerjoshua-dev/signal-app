@@ -3493,13 +3493,14 @@ async function init() {
 
 let obStep = 1;
 const obData = {
-  name:       '',
-  identities: [],   // multi-select — array of identity keys
-  interests:  [],
-  goal:       '',
-  depth:      '',
-  tone:       '',
-  schedule:   [],
+  name:         '',
+  identities:   [],   // multi-select — array of identity keys
+  interests:    [],
+  goal:         '',
+  depth:        '',
+  tone:         '',
+  schedule:     [],
+  trialEnabled: true, // mirrors the trial checkbox in the paywall
 };
 
 const TOTAL_STEPS = 8; // Paywall is an overlay, not a numbered step
@@ -3943,12 +3944,25 @@ function showPaywall() {
 
   let selectedTier = 'pro';
 
+  function updateCtaText() {
+    const cta          = $('paywall-cta');
+    const trialChecked = $('trial-toggle')?.checked ?? true;
+    if (!cta) return;
+    if (selectedTier === 'free') {
+      cta.textContent = 'Continue with Free';
+    } else if (trialChecked) {
+      cta.textContent = 'Start My 7-Day Free Trial';
+    } else {
+      cta.textContent = selectedTier === 'annual' ? 'Get Signal Pro' : 'Start Signal Pro';
+    }
+  }
+
   function selectTier(key) {
     selectedTier = key;
     overlay.querySelectorAll('.paywall-tier').forEach(t => {
       t.classList.toggle('selected', t.dataset.tier === key);
     });
-    $('paywall-cta').textContent = TIERS[key].cta;
+    updateCtaText();
   }
 
   // Phase 1: show overlay, start completion animation
@@ -3969,6 +3983,15 @@ function showPaywall() {
       overlay.querySelectorAll('.paywall-tier').forEach(t => {
         t.addEventListener('click', () => selectTier(t.dataset.tier));
       });
+
+      const trialToggle = $('trial-toggle');
+      if (trialToggle) {
+        trialToggle.addEventListener('change', () => {
+          obData.trialEnabled = trialToggle.checked;
+          updateCtaText();
+        });
+      }
+
       selectTier('pro');
       $('paywall-cta').addEventListener('click', () => completeOnboarding(selectedTier));
     }, 1000);
@@ -4133,7 +4156,7 @@ async function doSignUp(email, password, showError, submitBtn) {
         const res = await fetch('/api/stripe-checkout', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ priceId, userId: data.user.id, email, trial: true }),
+          body:    JSON.stringify({ priceId, userId: data.user.id, email, trial: obData.trialEnabled !== false }),
         });
         const { url } = await res.json();
         if (url) { window.location.href = url; return; }

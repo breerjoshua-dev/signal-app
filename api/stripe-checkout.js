@@ -30,27 +30,46 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields: priceId, userId, email' });
   }
 
+  // Resolve client-side placeholders to real Stripe price IDs from env vars
+  const priceMap = {
+    PRICE_MONTHLY: process.env.STRIPE_PRICE_ID_MONTHLY,
+    PRICE_ANNUAL:  process.env.STRIPE_PRICE_ID_ANNUAL,
+  };
+  const resolvedPriceId = priceMap[priceId] || priceId;
+
+  if (!resolvedPriceId || resolvedPriceId === priceId && priceId.startsWith('PRICE_')) {
+    console.error('Stripe checkout: unresolved price placeholder:', priceId);
+    return res.status(500).json({ error: 'Price ID env var not configured for: ' + priceId });
+  }
+
   try {
     const stripe = new Stripe(stripeKey);
 
-    const session = await stripe.checkout.sessions.create({
+    console.log('Creating Stripe session — priceId:', resolvedPriceId, 'userId:', userId, 'email:', email);
+
+    const sessionParams = {
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
-      subscription_data: { trial_period_days: 7 },
+      line_items: [{ price: resolvedPriceId, quantity: 1 }],
       customer_email: email,
       client_reference_id: userId,
       success_url: `${CORS_ORIGIN}/?upgraded=true`,
       cancel_url:  `${CORS_ORIGIN}/?checkout=cancelled`,
       metadata: {
         supabase_user_id: userId,
-        price_id: priceId,
+        price_id: resolvedPriceId,
       },
-    });
+    };
+
+    if (trial === true) {
+      sessionParams.subscription_data = { trial_period_days: 7 };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     return res.status(200).json({ url: session.url });
   } catch (err) {
-    console.error('Stripe checkout error:', err.message);
+    console.error('Stripe checkout error — message:', err.message, '— type:', err.type, '— param:', err.param);
     return res.status(500).json({ error: err.message });
   }
 }
