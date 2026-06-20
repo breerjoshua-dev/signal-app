@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Signal — Command</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230a0e1a'/%3E%3Ctext y='.9em' x='12' font-size='88' font-family='Georgia,serif' font-weight='800' fill='%234f8ef7'%3ES%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:           #060912;
+  --surface:      #0c1221;
+  --surface-2:    #111a2e;
+  --surface-3:    #172035;
+  --ink:          #e8eeff;
+  --ink-soft:     #9aaac8;
+  --muted:        #4a5a78;
+  --rule:         #141e32;
+  --accent:       #4f8ef7;
+  --accent-2:     #6aa3ff;
+  --accent-glow:  rgba(79,142,247,0.18);
+  --accent-dim:   rgba(79,142,247,0.10);
+  --accent-border:rgba(79,142,247,0.22);
+  --gold:         #f0b429;
+  --gold-dim:     rgba(240,180,41,0.12);
+  --success:      #34d399;
+  --success-dim:  rgba(52,211,153,0.10);
+  --danger:       #f87171;
+  --purple:       #a78bfa;
+  --serif:        'Playfair Display', Georgia, serif;
+  --sans:         'Inter', -apple-system, sans-serif;
+  --radius:       16px;
+  --radius-sm:    10px;
+  --radius-xs:    7px;
+}
+
+html, body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Dot grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(79,142,247,0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Top accent line */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--accent) 30%, var(--accent-2) 60%, transparent 100%);
+  z-index: 100;
+}
+
+/* ── Lock screen ─────────────────────────────────────────── */
+#lock-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  position: relative;
+  z-index: 10;
+}
+
+.lock-card {
+  background: var(--surface);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  padding: 52px 44px;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: 0 0 80px rgba(79,142,247,0.08), 0 24px 64px rgba(0,0,0,0.5);
+}
+
+.lock-s {
+  font-family: var(--serif);
+  font-size: 44px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 4px;
+  text-shadow: 0 0 40px rgba(79,142,247,0.4);
+}
+
+.lock-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 40px;
+}
+
+.lock-input {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 10px;
+}
+.lock-input:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.lock-input::placeholder { color: var(--muted); }
+
+.lock-btn {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px;
+  cursor: pointer;
+  transition: opacity 0.18s, box-shadow 0.18s;
+  box-shadow: 0 4px 20px rgba(79,142,247,0.3);
+}
+.lock-btn:hover { opacity: 0.9; box-shadow: 0 4px 28px rgba(79,142,247,0.45); }
+.lock-btn:disabled { opacity: 0.5; cursor: default; }
+
+.lock-error {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--danger);
+  min-height: 18px;
+}
+
+/* ── Dashboard shell ─────────────────────────────────────── */
+#dashboard { display: none; position: relative; z-index: 1; }
+
+.dash-header {
+  border-bottom: 1px solid var(--rule);
+  padding: 0 40px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: rgba(6,9,18,0.92);
+  backdrop-filter: blur(20px);
+  z-index: 50;
+}
+
+.dash-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dash-wordmark {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.dash-wordmark span { color: var(--accent); }
+
+.dash-pill {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.dash-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dash-clock {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-refresh-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-btn {
+  appearance: none;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-xs);
+  color: var(--ink-soft);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.refresh-btn:hover { border-color: var(--accent-border); color: var(--ink); background: var(--surface-3); }
+.refresh-btn svg { width: 12px; height: 12px; }
+.refresh-btn.spinning svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.auto-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--success);
+  background: var(--success-dim);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.auto-badge.off { color: var(--muted); background: transparent; }
+
+/* ── Main layout ─────────────────────────────────────────── */
+.dash-main {
+  padding: 36px 40px 60px;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+/* ── Hero stats ──────────────────────────────────────────── */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+@media (max-width: 900px) { .hero-stats { grid-template-columns: repeat(2,1fr); } }
+
+.hero-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.hero-card:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+}
+.hero-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.hero-card:hover::before { opacity: 1; }
+
+.hero-card.featured {
+  border-color: var(--accent-border);
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(79,142,247,0.04) 100%);
+  box-shadow: 0 0 40px rgba(79,142,247,0.06);
+}
+.hero-card.featured::before { opacity: 1; }
+
+.hero-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 12px;
+  letter-spacing: 0.04em;
+}
+
+.hero-value {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.hero-value.blue {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-value.gold {
+  background: linear-gradient(135deg, var(--gold), #ffd166);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-value.green {
+  background: linear-gradient(135deg, var(--success), #6ee7b7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+.hero-sub .up { color: var(--success); font-weight: 600; }
+
+/* ── Two-column / three-column ───────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 32px; }
+@media (max-width: 860px) { .two-col, .three-col { grid-template-columns: 1fr; } }
+
+/* ── Panel ───────────────────────────────────────────────── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: border-color 0.2s;
+}
+.panel:hover { border-color: rgba(79,142,247,0.12); }
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.panel-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.panel-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+/* ── Plan breakdown ──────────────────────────────────────── */
+.plan-stacked-bar {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 20px;
+  gap: 2px;
+}
+.plan-stacked-seg {
+  height: 100%;
+  transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+.plan-stacked-seg.free   { background: var(--muted); }
+.plan-stacked-seg.pro    { background: var(--accent); }
+.plan-stacked-seg.annual { background: var(--gold); }
+
+.plan-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.plan-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.plan-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.plan-dot.free   { background: var(--muted); }
+.plan-dot.pro    { background: var(--accent); }
+.plan-dot.annual { background: var(--gold); }
+
+.plan-name {
+  font-size: 13px;
+  color: var(--ink-soft);
+  flex: 1;
+}
+
+.plan-num {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.plan-pct {
+  font-size: 11px;
+  color: var(--muted);
+  width: 34px;
+  text-align: right;
+}
+
+/* ── Interest ranking ────────────────────────────────────── */
+.interest-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.interest-item:last-child { border-bottom: none; }
+
+.interest-rank {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  width: 16px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.interest-item:nth-child(1) .interest-rank { color: var(--gold); }
+.interest-item:nth-child(2) .interest-rank { color: var(--ink-soft); }
+.interest-item:nth-child(3) .interest-rank { color: #cd7c3f; }
+
+.interest-name {
+  font-size: 12px;
+  color: var(--ink-soft);
+  flex: 1;
+}
+
+.interest-track {
+  width: 64px;
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.interest-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 999px;
+  transition: width 1s cubic-bezier(0.16,1,0.3,1);
+}
+
+.interest-n {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  width: 22px;
+  text-align: right;
+}
+
+/* ── Split rows ──────────────────────────────────────────── */
+.split-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.split-item:last-child { margin-bottom: 0; }
+
+.split-label {
+  font-size: 12px;
+  color: var(--ink-soft);
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.split-track {
+  flex: 1;
+  height: 5px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.split-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 999px;
+  transition: width 1s cubic-bezier(0.16,1,0.3,1);
+}
+
+.split-pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  width: 34px;
+  text-align: right;
+}
+
+/* ── Micro stats in panel ────────────────────────────────── */
+.micro-stat { margin-bottom: 28px; }
+.micro-stat:last-child { margin-bottom: 0; }
+.micro-value {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 4px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.micro-label { font-size: 11px; color: var(--muted); }
+
+/* ── Users table ─────────────────────────────────────────── */
+.table-scroll { overflow-x: auto; margin-bottom: 0; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead tr {
+  border-bottom: 1px solid var(--rule);
+}
+
+thead th {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  padding: 0 16px 14px 16px;
+}
+thead th:first-child { padding-left: 24px; }
+
+tbody tr {
+  border-bottom: 1px solid var(--rule);
+  transition: background 0.15s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface-2); }
+
+tbody td {
+  padding: 14px 16px;
+  vertical-align: middle;
+}
+tbody td:first-child { padding-left: 24px; }
+
+.td-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.td-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.td-email { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+.plan-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.plan-chip::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.plan-chip.free   { background: rgba(74,90,120,0.2);       color: var(--muted);   }
+.plan-chip.free::before   { background: var(--muted); }
+.plan-chip.pro    { background: var(--accent-dim);          color: var(--accent);  }
+.plan-chip.pro::before    { background: var(--accent); }
+.plan-chip.annual { background: var(--gold-dim);            color: var(--gold);    }
+.plan-chip.annual::before { background: var(--gold); }
+
+.td-interests-cell {
+  font-size: 11px;
+  color: var(--muted);
+  max-width: 240px;
+  line-height: 1.6;
+}
+
+.td-date {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Loading / error ─────────────────────────────────────── */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
+  gap: 16px;
+  color: var(--muted);
+}
+
+.loader {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--rule);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.error-banner {
+  background: rgba(248,113,113,0.06);
+  border: 1px solid rgba(248,113,113,0.18);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  padding: 14px 18px;
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+.updated-line {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+  margin-bottom: 32px;
+  letter-spacing: 0.04em;
+}
+
+/* Auto-refresh countdown ring */
+.countdown-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+.countdown-wrap:hover .auto-badge { opacity: 0.8; }
+
+.countdown-ring {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.countdown-ring svg {
+  position: absolute;
+  top: 0; left: 0;
+  transform: rotate(-90deg);
+}
+.countdown-ring circle {
+  fill: none;
+  stroke-width: 2;
+}
+.ring-bg  { stroke: var(--rule); }
+.ring-fg  { stroke: var(--success); transition: stroke-dashoffset 1s linear; }
+</style>
+</head>
+<body>
+
+<!-- ── Lock screen ──────────────────────────────────────── -->
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-s">S</div>
+    <div class="lock-title">Command Center</div>
+    <input type="password" id="lock-input" class="lock-input" placeholder="Admin password" autocomplete="current-password" />
+    <button id="lock-btn" class="lock-btn">Enter</button>
+    <div id="lock-error" class="lock-error"></div>
+  </div>
+</div>
+
+<!-- ── Dashboard ────────────────────────────────────────── -->
+<div id="dashboard">
+  <header class="dash-header">
+    <div class="dash-left">
+      <div class="dash-wordmark"><span>S</span>ignal</div>
+      <div class="dash-pill">Command</div>
+    </div>
+    <div class="dash-right">
+      <div class="dash-clock" id="clock"></div>
+      <div class="countdown-wrap" id="auto-toggle" title="Toggle auto-refresh">
+        <div class="countdown-ring" id="countdown-ring" style="display:none">
+          <svg width="20" height="20" viewBox="0 0 20 20">
+            <circle class="ring-bg" cx="10" cy="10" r="8" />
+            <circle class="ring-fg" id="ring-fg" cx="10" cy="10" r="8"
+              stroke-dasharray="50.27" stroke-dashoffset="50.27" />
+          </svg>
+        </div>
+        <span class="auto-badge off" id="auto-badge">Auto off</span>
+      </div>
+      <button class="refresh-btn" id="refresh-btn">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M10.5 6A4.5 4.5 0 1 1 8.25 2.1"/>
+          <path d="M8.25 1v2.5H10.75"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <main class="dash-main" id="dash-main">
+    <div class="loading-state"><div class="loader"></div><span>Loading data…</span></div>
+  </main>
+</div>
+
+<script>
+const INTEREST_LABELS = {
+  'ai':'Artificial Intelligence','markets':'Financial Markets','venture-capital':'Startups & VC',
+  'technology':'Technology','geopolitics':'Geopolitics','business':'Business Strategy',
+  'crypto':'Cryptocurrency','science':'Science & Research','culture':'Culture & Arts',
+  'sports-business':'Sports Business','real-estate':'Real Estate','energy-climate':'Energy & Climate',
+  'healthcare':'Healthcare & Biotech','economic-policy':'Economic Policy','leadership':'Leadership & Career',
+  'philosophy':'Philosophy & Ideas','film':'Film & Entertainment','music':'Music & Media',
+  'personal-finance':'Personal Finance','food':'Food & Hospitality','fashion':'Fashion & Design',
+};
+
+let token = sessionStorage.getItem('signal-admin-token') || '';
+let autoRefresh = false;
+let autoTimer = null;
+let countdownVal = 60;
+let countdownInterval = null;
+
+// ── Clock ───────────────────────────────────────────────────
+function tickClock() {
+  const el = document.getElementById('clock');
+  if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+// ── Lock screen ─────────────────────────────────────────────
+const lockScreen = document.getElementById('lock-screen');
+const dashboard  = document.getElementById('dashboard');
+const lockInput  = document.getElementById('lock-input');
+const lockBtn    = document.getElementById('lock-btn');
+const lockError  = document.getElementById('lock-error');
+
+async function tryUnlock() {
+  const t = lockInput.value.trim();
+  if (!t) return;
+  lockBtn.disabled = true;
+  lockBtn.textContent = 'Checking…';
+  lockError.textContent = '';
+  const ok = await fetchDashboard(t);
+  if (ok) {
+    sessionStorage.setItem('signal-admin-token', t);
+    token = t;
+    lockScreen.style.display = 'none';
+    dashboard.style.display  = 'block';
+  } else {
+    lockBtn.disabled = false;
+    lockBtn.textContent = 'Enter';
+    lockError.textContent = 'Incorrect password.';
+  }
+}
+
+lockBtn.addEventListener('click', tryUnlock);
+lockInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+
+if (token) {
+  lockScreen.style.display = 'none';
+  dashboard.style.display  = 'block';
+  fetchDashboard(token);
+}
+
+// ── Auto-refresh ────────────────────────────────────────────
+const autoToggle = document.getElementById('auto-toggle');
+const autoBadge  = document.getElementById('auto-badge');
+const ringEl     = document.getElementById('countdown-ring');
+const ringFg     = document.getElementById('ring-fg');
+
+const CIRCUMFERENCE = 50.27;
+
+autoToggle.addEventListener('click', toggleAuto);
+
+function toggleAuto() {
+  autoRefresh = !autoRefresh;
+  autoBadge.textContent = autoRefresh ? 'Auto on' : 'Auto off';
+  autoBadge.className   = 'auto-badge' + (autoRefresh ? '' : ' off');
+  ringEl.style.display  = autoRefresh ? 'block' : 'none';
+  if (autoRefresh) startCountdown();
+  else stopCountdown();
+}
+
+function startCountdown() {
+  stopCountdown();
+  countdownVal = 60;
+  updateRing();
+  countdownInterval = setInterval(() => {
+    countdownVal--;
+    updateRing();
+    if (countdownVal <= 0) {
+      fetchDashboard(token, true);
+      countdownVal = 60;
+    }
+  }, 1000);
+}
+
+function stopCountdown() {
+  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+}
+
+function updateRing() {
+  const progress = countdownVal / 60;
+  ringFg.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+}
+
+// ── Refresh button ───────────────────────────────────────────
+document.getElementById('refresh-btn').addEventListener('click', () => {
+  fetchDashboard(token, true);
+  if (autoRefresh) startCountdown();
+});
+
+// ── Data fetch ───────────────────────────────────────────────
+async function fetchDashboard(t, isRefresh = false) {
+  const main = document.getElementById('dash-main');
+  const btn  = document.getElementById('refresh-btn');
+  if (!isRefresh) main.innerHTML = '<div class="loading-state"><div class="loader"></div><span>Loading data…</span></div>';
+  if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+
+  try {
+    const res = await fetch('/api/admin', { headers: { 'x-admin-token': t } });
+    if (res.status === 401) { if (btn) { btn.classList.remove('spinning'); btn.disabled = false; } return false; }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      main.innerHTML = `<div class="error-banner">API error ${res.status}: ${err.error || 'Unknown'}</div>`;
+      if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+      return true;
+    }
+    const { profiles } = await res.json();
+    renderDashboard(profiles);
+    return true;
+  } catch (e) {
+    main.innerHTML = `<div class="error-banner">Failed to load: ${e.message}</div>`;
+    return false;
+  } finally {
+    if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+  }
+}
+
+// ── Counter animation ────────────────────────────────────────
+function animateCount(el, target, duration = 800) {
+  const start = performance.now();
+  const update = (now) => {
+    const progress = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const val = Math.round(ease * target);
+    el.textContent = Number.isInteger(target) ? val : val.toFixed(1);
+    if (progress < 1) requestAnimationFrame(update);
+    else el.textContent = typeof target === 'number' && !Number.isInteger(target) ? target.toFixed(1) : target;
+  };
+  requestAnimationFrame(update);
+}
+
+// ── Render ───────────────────────────────────────────────────
+function renderDashboard(profiles) {
+  const main = document.getElementById('dash-main');
+  const total = profiles.length;
+
+  const planCounts = { free: 0, pro: 0, annual: 0 };
+  profiles.forEach(p => {
+    const pl = (p.plan || 'free').toLowerCase();
+    planCounts[pl] = (planCounts[pl] || 0) + 1;
+  });
+
+  const interestCounts = {};
+  profiles.forEach(p => (p.interests || []).forEach(k => {
+    interestCounts[k] = (interestCounts[k] || 0) + 1;
+  }));
+  const topInterests = Object.entries(interestCounts).sort((a,b) => b[1]-a[1]).slice(0,10);
+  const maxI = topInterests[0]?.[1] || 1;
+
+  const schedCounts = { morning:0, midday:0, evening:0 };
+  let schedTotal = 0;
+  profiles.forEach(p => (p.schedule || []).forEach(k => { schedCounts[k]=(schedCounts[k]||0)+1; schedTotal++; }));
+
+  const toneCounts = {};
+  profiles.forEach(p => { const t=p.tone||'conversational'; toneCounts[t]=(toneCounts[t]||0)+1; });
+
+  const now = Date.now();
+  const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const recentCount = profiles.filter(p => p.created_at && new Date(p.created_at).getTime() > weekAgo).length;
+  const paidCount   = (planCounts.pro||0) + (planCounts.annual||0);
+  const convPct     = total ? Math.round(paidCount/total*100) : 0;
+  const avgInterests= total ? (Object.values(interestCounts).reduce((a,b)=>a+b,0)/total) : 0;
+
+  const pct = (n, d) => d ? Math.round(n/d*100) : 0;
+
+  main.innerHTML = `
+    <div class="updated-line">Last updated: ${new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+
+    <p class="section-label">Key Metrics</p>
+    <div class="hero-stats">
+      <div class="hero-card featured">
+        <div class="hero-label">Total Users</div>
+        <div class="hero-value blue" id="cnt-total">${total}</div>
+        <div class="hero-sub"><span class="up">+${recentCount}</span> this week</div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-label">Paid Users</div>
+        <div class="hero-value gold" id="cnt-paid">${paidCount}</div>
+        <div class="hero-sub">${planCounts.pro||0} pro · ${planCounts.annual||0} annual</div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-label">Conversion</div>
+        <div class="hero-value green" id="cnt-conv">${convPct}%</div>
+        <div class="hero-sub">free-to-paid rate</div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-label">New This Week</div>
+        <div class="hero-value" id="cnt-week">${recentCount}</div>
+        <div class="hero-sub">signups in last 7 days</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <!-- Plan breakdown -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Plan Distribution</div>
+          <div class="panel-count">${total} users</div>
+        </div>
+        <div class="plan-stacked-bar">
+          ${['free','pro','annual'].map(pl => {
+            const p = pct(planCounts[pl]||0, total);
+            return `<div class="plan-stacked-seg ${pl}" style="width:${p}%"></div>`;
+          }).join('')}
+        </div>
+        <div class="plan-legend">
+          ${[
+            {key:'free',  label:'Free'},
+            {key:'pro',   label:'Pro'},
+            {key:'annual',label:'Annual'},
+          ].map(({key,label}) => `
+            <div class="plan-row">
+              <div class="plan-dot ${key}"></div>
+              <div class="plan-name">${label}</div>
+              <div class="plan-num">${planCounts[key]||0}</div>
+              <div class="plan-pct">${pct(planCounts[key]||0,total)}%</div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Top interests -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Top Interests</div>
+          <div class="panel-count">by selections</div>
+        </div>
+        ${topInterests.map(([key,count],i) => `
+          <div class="interest-item">
+            <div class="interest-rank">${i+1}</div>
+            <div class="interest-name">${INTEREST_LABELS[key]||key}</div>
+            <div class="interest-track">
+              <div class="interest-fill" style="width:${pct(count,maxI)}%"></div>
+            </div>
+            <div class="interest-n">${count}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="three-col">
+      <!-- Schedule -->
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Schedule Split</div></div>
+        ${['morning','midday','evening'].map(k => `
+          <div class="split-item">
+            <div class="split-label">${k.charAt(0).toUpperCase()+k.slice(1)}</div>
+            <div class="split-track"><div class="split-fill" style="width:${schedTotal?pct(schedCounts[k]||0,schedTotal):0}%"></div></div>
+            <div class="split-pct">${schedTotal?pct(schedCounts[k]||0,schedTotal):0}%</div>
+          </div>`).join('')}
+      </div>
+
+      <!-- Tone -->
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Tone Preference</div></div>
+        ${Object.entries(toneCounts).sort((a,b)=>b[1]-a[1]).map(([tone,count]) => {
+          const label = {conversational:'Conversational',sharp:'Sharp',bold:'Bold'}[tone]||tone;
+          return `
+            <div class="split-item">
+              <div class="split-label">${label}</div>
+              <div class="split-track"><div class="split-fill" style="width:${pct(count,total)}%"></div></div>
+              <div class="split-pct">${pct(count,total)}%</div>
+            </div>`;
+        }).join('')}
+      </div>
+
+      <!-- Quick numbers -->
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Averages</div></div>
+        <div class="micro-stat">
+          <div class="micro-value" id="cnt-avg">${avgInterests.toFixed(1)}</div>
+          <div class="micro-label">interests per user</div>
+        </div>
+        <div class="micro-stat">
+          <div class="micro-value">${schedTotal&&total?(schedTotal/total).toFixed(1):'—'}</div>
+          <div class="micro-label">schedule slots per user</div>
+        </div>
+        <div class="micro-stat">
+          <div class="micro-value">${Object.keys(interestCounts).length}</div>
+          <div class="micro-label">distinct interests chosen</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-label">All Users</p>
+    <div class="panel" style="padding:0;overflow:hidden;margin-bottom:0">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Plan</th>
+              <th>Interests</th>
+              <th>Signed Up</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${profiles.map(p => {
+              const name   = p.name || '—';
+              const email  = p.email || '';
+              const plan   = (p.plan||'free').toLowerCase();
+              const planLabel = {free:'Free',pro:'Pro',annual:'Annual'}[plan]||plan;
+              const initials = name !== '—'
+                ? name.split(' ').map(w=>w[0]).join('').slice(0,2)
+                : (email ? email[0] : '?');
+              const interests = (p.interests||[]).map(k=>INTEREST_LABELS[k]||k).join(', ')||'—';
+              const date = p.created_at
+                ? new Date(p.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+                : '—';
+              return `
+                <tr>
+                  <td>
+                    <div class="td-user">
+                      <div class="avatar">${esc(initials)}</div>
+                      <div>
+                        <div class="td-name">${esc(name)}</div>
+                        ${email ? `<div class="td-email">${esc(email)}</div>` : ''}
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="plan-chip ${plan}">${planLabel}</span></td>
+                  <td><div class="td-interests-cell">${esc(interests)}</div></td>
+                  <td class="td-date">${date}</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // Animate counters
+  animateCount(document.getElementById('cnt-total'), total);
+  animateCount(document.getElementById('cnt-paid'),  paidCount);
+  animateCount(document.getElementById('cnt-conv'),  convPct);
+  animateCount(document.getElementById('cnt-week'),  recentCount);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>

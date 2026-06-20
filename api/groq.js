@@ -19,6 +19,15 @@ export default async function handler(req, res) {
     });
 
     const data = await upstream.json();
+
+    // Forward Groq's rate-limit reset headers so the client can compute exact retry delays
+    const resetTokens   = upstream.headers.get('x-ratelimit-reset-tokens');
+    const resetRequests = upstream.headers.get('x-ratelimit-reset-requests');
+    const retryAfter    = upstream.headers.get('retry-after');
+    if (resetTokens)   res.setHeader('x-ratelimit-reset-tokens',   resetTokens);
+    if (resetRequests) res.setHeader('x-ratelimit-reset-requests', resetRequests);
+    if (retryAfter)    res.setHeader('retry-after', retryAfter);
+
     return res.status(upstream.status).json(data);
   } catch (err) {
     return res.status(502).json({ error: 'Upstream request failed: ' + err.message });

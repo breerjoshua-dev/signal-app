@@ -73,10 +73,6 @@ html.theme-light .app-header {
   border-bottom-color: #d8d2c4;
 }
 
-html.theme-light #section-nav-bar {
-  background: #faf7f2;
-  border-right-color: #d8d2c4;
-}
 
 /* ── Theme toggle component ──────────────────────────────────── */
 .theme-toggle-btn {
@@ -1023,117 +1019,29 @@ button { font-family: var(--sans); }
 .section-share-btn:hover { color: var(--ink-soft); }
 .section-share-btn.copied { color: var(--success); }
 
-/* ── Signal Noticed card ─────────────────────────────────────── */
-.signal-noticed-card {
-  background: var(--surface-2);
-  border: 1px solid var(--accent-border);
-  border-left: 3px solid var(--accent);
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 36px;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
+/* ── Front page greeting header ──────────────────────────────── */
+#fp-greeting {
+  padding-bottom: 40px;
 }
-.signal-noticed-card.shown { opacity: 1; transform: none; }
-.signal-noticed-label {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 8px;
-}
-.signal-noticed-text {
+.fp-greeting-line {
   font-family: var(--serif);
-  font-style: italic;
-  font-size: 17px;
-  color: var(--ink-soft);
-  line-height: 1.6;
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.fp-greeting-meta {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+@media (max-width: 767px) {
+  .fp-greeting-line { font-size: 26px; }
 }
 
 /* ── Left sidebar section navigation ────────────────────────── */
 /* ── Left sidebar — always position:fixed; visibility controlled by JS ── */
-#section-nav-bar {
-  position: fixed;
-  top: 60px;
-  left: 0;
-  width: 200px;
-  height: calc(100vh - 60px);
-  background: var(--surface);
-  border-right: 1px solid var(--rule);
-  padding: 24px 0;
-  z-index: 100;
-  overflow-y: auto;
-  scrollbar-width: none;
-  /* NO display:none here — JS sets display explicitly */
-}
-#section-nav-bar::-webkit-scrollbar { display: none; }
-
-.section-nav-inner { display: flex; flex-direction: column; gap: 0; }
-
-.section-nav-pill {
-  appearance: none;
-  border: none;
-  border-left: 3px solid transparent;
-  background: transparent;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 500;
-  font-family: var(--sans);
-  text-align: left;
-  padding: 12px 20px;
-  width: 100%;
-  cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-  line-height: 1.35;
-}
-.section-nav-pill:hover { color: var(--ink-soft); background: var(--surface-2); }
-.section-nav-pill.active {
-  color: var(--accent);
-  border-left-color: var(--accent);
-  background: var(--accent-dim);
-  font-weight: 600;
-}
-
-/* Shift main content right when sidebar is visible — fill all remaining space */
-.app-content.has-sidebar { margin-left: 200px; margin-right: 0; max-width: none; }
-
-/* Mobile pill row (shown on small screens instead of sidebar) */
-.section-nav-pills-mobile {
-  display: none;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding: 10px 0 8px;
-  margin-bottom: 8px;
-}
-.section-nav-pills-mobile::-webkit-scrollbar { display: none; }
-.section-nav-pills-mobile-inner {
-  display: flex;
-  gap: 7px;
-  white-space: nowrap;
-  padding: 0 4px;
-}
-.section-pill-mobile {
-  appearance: none;
-  border: 1px solid var(--rule);
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  font-family: var(--sans);
-  letter-spacing: 0.06em;
-  padding: 6px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color var(--transition), border-color var(--transition), background var(--transition);
-  white-space: nowrap;
-}
-.section-pill-mobile.active {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-dim);
-}
 
 /* responsive rules consolidated below — see end of stylesheet */
 
@@ -1871,12 +1779,30 @@ ol.headlines li {
   color: var(--ink-soft);
   padding-left: 18px;
   border-left: 3px solid var(--accent);
-  margin-bottom: 24px;
+  margin-bottom: 0;
+}
+.section-lede-cont {
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  padding-left: 18px;
+  margin-top: 16px;
+  margin-bottom: 0;
 }
 .section-lede.placeholder {
   color: var(--muted);
   font-style: italic;
   border-left-color: var(--surface-3);
+  margin-bottom: 24px;
+}
+.section-kicker {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-style: italic;
+  color: var(--muted);
+  margin-bottom: 20px;
+  line-height: 1.5;
 }
 .section-lede.speaking {
   background: linear-gradient(transparent 60%, var(--accent-dim) 60%);
@@ -1941,6 +1867,298 @@ ol.headlines .hl-src {
   font-size: 14px;
   margin: 0 0 52px;
 }
+
+/* ── Sports score widget ─────────────────────────────────────── */
+.sports-widget {
+  margin-bottom: 24px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.sports-widget-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--rule);
+}
+.sports-widget-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+.sports-widget-dot.past { background: var(--muted); box-shadow: none; }
+.sports-widget-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--muted);
+}
+.sports-game-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px 9px 20px;
+  font-size: 13px;
+}
+.sports-league-group {
+  border-bottom: 1px solid var(--rule);
+}
+.sports-league-group:last-child { border-bottom: none; }
+.sports-league-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--muted);
+  padding: 8px 14px 4px;
+}
+.sports-matchup {
+  flex: 1;
+  font-size: 13px; font-weight: 500;
+  color: var(--ink-soft);
+}
+.sports-matchup .score { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.sports-status {
+  font-size: 11px; color: var(--muted);
+  white-space: nowrap;
+}
+.sports-status.live { color: var(--success); font-weight: 600; }
+
+/* ── Modular commentary blocks (change 4) ───────────────────── */
+.commentary-wrap {
+  margin-bottom: 24px;
+}
+.commentary-wrap.placeholder {
+  color: var(--muted);
+  font-style: italic;
+  font-family: var(--serif);
+  font-size: 18px;
+  padding-left: 18px;
+  border-left: 3px solid var(--surface-3);
+  line-height: 1.65;
+}
+
+
+/* ============================================================
+   FRONT PAGE
+   ============================================================ */
+#fp-view, #dv-view { will-change: opacity; }
+
+.fp-progress {
+  font-size: 11px; font-weight: 500; color: var(--muted);
+  text-align: right; margin-bottom: 16px; display: none;
+}
+
+/* Today at a Glance */
+#fp-glance { margin-bottom: 24px; }
+
+.glance-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.glance-header {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.26em;
+  text-transform: uppercase; color: var(--muted);
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.glance-row {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  transition: background 0.15s;
+  outline: none;
+}
+.glance-row:last-child { border-bottom: none; }
+.glance-row:hover { background: var(--surface-2); }
+
+.glance-icon { font-size: 13px; flex-shrink: 0; }
+
+.glance-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+  flex-shrink: 0; width: 120px;
+}
+
+.glance-text {
+  font-size: 13px; color: var(--ink-soft); line-height: 1.45; flex: 1;
+}
+.glance-loading { color: var(--muted); font-style: italic; }
+
+.glance-arrow {
+  font-size: 12px; color: var(--muted); flex-shrink: 0;
+  transition: color 0.15s, transform 0.15s;
+}
+.glance-row:hover .glance-arrow { color: var(--accent); transform: translateX(3px); }
+
+/* Grid cards — auto-fit so lone cards on the last row fill full width */
+.fp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+@media (max-width: 767px) {
+  .fp-grid { grid-template-columns: 1fr; }
+}
+
+.fp-card {
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.fp-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-border);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+}
+.fp-card.fp-card-read { opacity: 0.65; }
+.fp-card.fp-card-read:hover { opacity: 1; }
+.fp-card.fp-card-error { opacity: 0.5; }
+
+.fp-card-img {
+  position: relative;
+  height: 140px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.fp-card-img img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.3s;
+}
+.fp-card:hover .fp-card-img img { transform: scale(1.03); }
+.fp-card-img-empty, .fp-card-img-error { background: var(--surface-3); }
+.fp-card-img-empty img, .fp-card-img-error img { display: none !important; }
+
+.fp-read-badge {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(0,0,0,0.55);
+  color: var(--success); padding: 3px 8px; border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.fp-card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+.fp-card-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--accent);
+}
+
+.fp-card-kicker {
+  font-family: var(--sans); font-size: 12px; font-style: italic;
+  color: var(--muted); line-height: 1.4;
+}
+
+.fp-card-preview {
+  font-family: var(--serif); font-size: 14px;
+  color: var(--ink-soft); line-height: 1.55; flex: 1;
+}
+.fp-card-preview.fp-loading { color: var(--muted); font-style: italic; }
+
+.fp-card-meta {
+  font-size: 11px; color: var(--muted); margin-top: 4px;
+}
+
+/* Light theme */
+html.theme-light .fp-card { background: var(--surface); }
+html.theme-light .fp-card-img { background: var(--surface-2); }
+
+/* ============================================================
+   DETAIL VIEW
+   ============================================================ */
+#dv-view { min-height: 60vh; }
+
+.dv-wrap { max-width: 720px; margin: 0 auto; padding-bottom: 60px; }
+
+.dv-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 0 24px;
+}
+
+.dv-back-btn {
+  appearance: none; background: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-xs);
+  color: var(--ink-soft); font-family: var(--sans);
+  font-size: 13px; font-weight: 500;
+  padding: 8px 14px; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.dv-back-btn:hover { border-color: var(--accent-border); color: var(--ink); }
+
+.dv-bookmark-btn {
+  appearance: none; background: none; border: none;
+  color: var(--muted); cursor: pointer; padding: 6px;
+  border-radius: var(--radius-xs);
+  transition: color 0.2s;
+}
+.dv-bookmark-btn:hover { color: var(--ink); }
+.dv-bookmark-btn.saved { color: var(--accent); }
+
+.dv-hero {
+  border-radius: var(--radius-sm); overflow: hidden;
+  margin-bottom: 28px; height: 280px; background: var(--surface-2);
+}
+.dv-hero-empty { background: var(--surface-2); }
+.dv-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 767px) { .dv-hero { height: 200px; } }
+
+.dv-article { }
+
+.dv-head { margin-bottom: 6px; }
+.dv-head .section-num {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px;
+}
+.dv-title {
+  font-family: var(--serif); font-size: 26px; font-weight: 800;
+  color: var(--ink); letter-spacing: -0.02em; line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.dv-source-line {
+  font-size: 11px; font-variant: small-caps; letter-spacing: 0.1em;
+  color: var(--muted); margin-top: 32px; margin-bottom: 20px;
+}
+
+.dv-deeper { margin-top: 4px; margin-bottom: 32px; }
+
+.dv-deeper-btn {
+  appearance: none; background: none; border: none;
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  color: var(--muted); cursor: pointer; padding: 0;
+  transition: color 0.2s;
+}
+.dv-deeper-btn:hover { color: var(--ink); }
+
+.dv-deeper-content { margin-top: 16px; }
+
+.dv-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding-top: 24px;
+  border-top: 1px solid var(--rule);
+}
+
+.dv-nav-btn {
+  appearance: none; background: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-xs);
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  color: var(--ink-soft); padding: 9px 14px; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  max-width: 48%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dv-nav-btn:hover { border-color: var(--accent-border); color: var(--ink); }
+
 
 /* ============================================================
    EXPLORE VIEW
@@ -2234,10 +2452,6 @@ ol.headlines .hl-src {
     --section-head: 26px;
     --lede-size: 17px;
   }
-  /* Hide sidebar, show mobile pill row */
-  #section-nav-bar                    { display: none !important; }
-  .app-content.has-sidebar            { margin-left: 0; }
-  .section-nav-pills-mobile           { display: block; }
   /* Paywall tiers stay 3-col until mobile */
   .paywall-tiers                      { grid-template-columns: repeat(3, 1fr); }
 }
@@ -2301,8 +2515,8 @@ ol.headlines .hl-src {
 /* ── Large desktop (1280px+) — give content more breathing room ── */
 @media (min-width: 1280px) {
   :root { --content-max: 860px; --content-pad: 56px; }
-  .app-content.has-sidebar { margin-left: 200px; margin-right: 0; max-width: none; }
 }
+
 
 /* ── Auth overlay ─────────────────────────────────────────────── */
 #auth-overlay {
@@ -2489,11 +2703,6 @@ ol.headlines .hl-src {
     </div>
   </header>
 
-  <!-- Left sidebar section nav — shown after generate, desktop only -->
-  <nav id="section-nav-bar" aria-label="Jump to section">
-    <div class="section-nav-inner" id="section-nav-inner"></div>
-  </nav>
-
   <main class="app-content" id="app-content">
 
     <!-- ── BRIEFING VIEW ── -->
@@ -2511,10 +2720,7 @@ ol.headlines .hl-src {
       </header>
 
       <div class="briefing-controls">
-        <div class="mode-toggle" role="group" aria-label="Edition">
-          <button id="mode-morning"   class="mode-btn active">Morning</button>
-          <button id="mode-afternoon" class="mode-btn">Afternoon</button>
-        </div>
+        <div class="mode-toggle" id="mode-toggle" role="group" aria-label="Edition"></div>
         <button id="generate-btn" class="generate-btn">Generate</button>
       </div>
 
@@ -2528,10 +2734,6 @@ ol.headlines .hl-src {
         </div>
       </div>
 
-      <!-- Mobile section pills — below audio controls, above content -->
-      <div class="section-nav-pills-mobile" id="section-pills-mobile">
-        <div class="section-nav-pills-mobile-inner" id="section-pills-mobile-inner"></div>
-      </div>
 
       <div id="errbox" class="errbox" role="alert"></div>
 
@@ -2592,9 +2794,10 @@ const PEXELS_KEY = '';
 const RSS_PROXY          = 'https://api.rss2json.com/v1/api.json?rss_url=';
 const HEADLINES_PER_SECTION  = 8;
 const HEADLINES_FOR_PROMPT   = 8;
-const POLLINATIONS_URL   = 'https://text.pollinations.ai/openai';
-const POLLINATIONS_MODEL = 'openai';
-const GROQ_MODEL         = 'llama-3.3-70b-versatile';
+const POLLINATIONS_URL    = 'https://text.pollinations.ai/openai';
+const POLLINATIONS_MODEL  = 'openai';
+const GROQ_MODEL          = 'llama-3.3-70b-versatile';
+const GROQ_MODEL_RESERVE  = 'llama-3.1-8b-instant';   // separate TPM bucket — used when primary is rate-limited
 
 // ── Environment & voice ───────────────────────────────────────
 const IS_HOSTED = window.location.protocol === 'https:';
@@ -2653,10 +2856,10 @@ const INTEREST_MAP = {
     label:   'Artificial Intelligence',
     desc:    'Models, labs, breakthroughs, and the companies shaping the AI era.',
     feeds:   [
-      'https://news.google.com/rss/search?q=artificial+intelligence&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=openai+anthropic+nvidia+google+gemini&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:wsj.com+AI&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=AI+research+llm+model+agent&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:theinformation.com+AI&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:technologyreview.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:arstechnica.com+AI&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:venturebeat.com+AI&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'artificial intelligence, large language models, OpenAI, Anthropic, Google DeepMind, Nvidia, AI research, AI agents',
   },
@@ -2664,9 +2867,9 @@ const INTEREST_MAP = {
     label:   'Financial Markets',
     desc:    'Equities, macro, the Fed, and what\'s moving markets today.',
     feeds:   [
-      'https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:wsj.com+markets&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:bloomberg.com+markets&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:wsj.com+markets&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:ft.com+markets&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=S%26P+500+Fed+earnings+interest+rates&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'stock markets, S&P 500, Federal Reserve, earnings, interest rates, bonds, Wall Street, equities',
@@ -2675,10 +2878,10 @@ const INTEREST_MAP = {
     label:   'Startups & Venture Capital',
     desc:    'Funding rounds, founders, VC firms, and the startup ecosystem.',
     feeds:   [
-      'https://news.google.com/rss/search?q=startup+funding+venture+capital&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:techcrunch.com+funding&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=VC+investment+round+startup+unicorn&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:axios.com+startups&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:theinformation.com+startup&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:axios.com+venture+startup&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=startup+funding+venture+capital+unicorn&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'venture capital, startup funding rounds, founder news, VC firms, unicorns, IPOs, seed rounds, Series A B C',
   },
@@ -2686,7 +2889,7 @@ const INTEREST_MAP = {
     label:   'Technology & Innovation',
     desc:    'Big Tech, consumer gadgets, software, and the companies building the future.',
     feeds:   [
-      'https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:arstechnica.com&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:theverge.com&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:wired.com&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=tech+innovation+Apple+Google+Microsoft+Meta&hl=en-US&gl=US&ceid=US:en',
@@ -2697,10 +2900,10 @@ const INTEREST_MAP = {
     label:   'Global Politics & Geopolitics',
     desc:    'International relations, foreign policy, and the forces shaping the world order.',
     feeds:   [
-      'https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:reuters.com+geopolitics&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=global+politics+foreign+policy+international+relations&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:foreignaffairs.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:economist.com+international&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:cfr.org&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:reuters.com+world+geopolitics&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'global politics, international relations, geopolitical tensions, foreign policy, diplomacy, NATO, China, Russia, Middle East',
   },
@@ -2708,10 +2911,10 @@ const INTEREST_MAP = {
     label:   'Business Strategy',
     desc:    'Corporate moves, M&A, CEO decisions, and the strategies shaping industries.',
     feeds:   [
-      'https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:hbr.org&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:bloomberg.com+businessweek&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:mckinsey.com&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=corporate+strategy+CEO+merger+acquisition&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:ft.com+business+strategy&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'business strategy, corporate news, mergers and acquisitions, CEO moves, management, organizational change, Fortune 500',
   },
@@ -2719,10 +2922,10 @@ const INTEREST_MAP = {
     label:   'Cryptocurrency & Web3',
     desc:    'Bitcoin, Ethereum, DeFi, regulation, and the digital asset ecosystem.',
     feeds:   [
-      'https://news.google.com/rss/search?q=cryptocurrency+bitcoin+ethereum&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:coindesk.com&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=DeFi+Web3+blockchain+crypto&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=crypto+regulation+SEC+stablecoin&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:theblock.co&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:decrypt.co&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=bitcoin+ethereum+crypto+regulation+SEC&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'cryptocurrency, Bitcoin, Ethereum, DeFi, Web3, blockchain, crypto markets, stablecoins, SEC regulation',
   },
@@ -2730,10 +2933,10 @@ const INTEREST_MAP = {
     label:   'Science & Research',
     desc:    'Discoveries, breakthroughs, and the research changing what we know.',
     feeds:   [
-      'https://news.google.com/rss/headlines/section/topic/SCIENCE?hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:nature.com+news&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:scientificamerican.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:quantamagazine.org&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=scientific+research+breakthrough+discovery&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:nature.com&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=space+physics+biology+climate+science&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'scientific research, discoveries, physics, biology, space exploration, medical breakthroughs, climate science',
   },
@@ -2741,10 +2944,10 @@ const INTEREST_MAP = {
     label:   'Culture & Arts',
     desc:    'Literature, visual arts, ideas, and the cultural moments that matter.',
     feeds:   [
-      'https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=culture+arts+books+exhibitions+museums&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:nytimes.com+culture&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=cultural+moment+art+literature+society&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:newyorker.com+culture&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:artnet.com+news&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:hyperallergic.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=culture+arts+literature+books+exhibition&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'culture, arts, literature, visual arts, museums, cultural moments, society, books, exhibitions',
   },
@@ -2752,10 +2955,10 @@ const INTEREST_MAP = {
     label:   'Sports Business',
     desc:    'Team valuations, athlete deals, media rights, and the money behind sports.',
     feeds:   [
-      'https://news.google.com/rss/search?q=sports+business+athlete+investment+deal&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=sports+team+valuation+media+rights+league&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:sportico.com&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=NIL+athlete+brand+endorsement+league+financials&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:theathletic.com+business&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:espn.com+business+deal&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=sports+business+media+rights+team+valuation&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'sports business, team valuations, athlete brand deals, league economics, media rights, NIL, franchise sales',
   },
@@ -2763,10 +2966,10 @@ const INTEREST_MAP = {
     label:   'Real Estate & Property',
     desc:    'Housing markets, commercial property, development, and where capital is flowing.',
     feeds:   [
-      'https://news.google.com/rss/search?q=real+estate+property+market&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=housing+market+mortgage+rates+home+prices&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=commercial+real+estate+REIT+office+retail&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=real+estate+development+construction+zoning&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:therealdeal.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:bisnow.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:wsj.com+real+estate&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=housing+market+mortgage+rates+commercial+real+estate&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'real estate market, housing prices, mortgage rates, commercial property, REITs, development, zoning',
   },
@@ -2774,10 +2977,10 @@ const INTEREST_MAP = {
     label:   'Energy & Climate',
     desc:    'Oil, renewables, climate policy, and the energy transition.',
     feeds:   [
-      'https://news.google.com/rss/search?q=energy+climate+renewable+solar+wind&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=oil+gas+OPEC+energy+transition&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:bloomberg.com+climate+energy&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=climate+policy+net+zero+emissions+COP&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:bloomberg.com+green+energy&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:canarymedia.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:heatmap.news&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=oil+gas+OPEC+renewable+energy+climate+policy&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'energy markets, climate change, renewable energy, oil prices, OPEC, energy transition, climate policy, net zero',
   },
@@ -2785,10 +2988,10 @@ const INTEREST_MAP = {
     label:   'Healthcare & Biotech',
     desc:    'Drug approvals, biotech breakthroughs, health policy, and the business of medicine.',
     feeds:   [
-      'https://news.google.com/rss/headlines/section/topic/HEALTH?hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=biotech+pharma+drug+FDA+approval&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=healthcare+policy+insurance+hospital+system&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:statnews.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:endpts.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:fiercebiotech.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=biotech+pharma+FDA+drug+approval+clinical+trial&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'healthcare, biotech, pharmaceutical, FDA approvals, medical policy, drug development, health insurance',
   },
@@ -2796,10 +2999,10 @@ const INTEREST_MAP = {
     label:   'Economic Policy',
     desc:    'The Fed, fiscal policy, trade, inflation, and how governments shape the economy.',
     feeds:   [
-      'https://news.google.com/rss/search?q=economic+policy+Federal+Reserve+inflation+GDP&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=fiscal+policy+government+spending+tax+policy&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:wsj.com+economy+policy&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=trade+tariff+WTO+economic+growth+recession&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:reuters.com+economy&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:project-syndicate.org&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:axios.com+economy+macro&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=federal+reserve+inflation+fiscal+policy+GDP+trade&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'economic policy, Federal Reserve, inflation, GDP, fiscal policy, trade, tariffs, government spending, recession',
   },
@@ -2807,10 +3010,10 @@ const INTEREST_MAP = {
     label:   'Leadership & Career',
     desc:    'How the best operators think, manage, and build — and what\'s changing at work.',
     feeds:   [
-      'https://news.google.com/rss/search?q=leadership+CEO+management+career+workplace&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:hbr.org+leadership&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=future+of+work+remote+hybrid+workforce&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=executive+strategy+talent+management+culture&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:hbr.org&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:fastcompany.com+leadership&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=leadership+CEO+management+future+of+work&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=executive+talent+company+culture+workplace&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'leadership, management, career development, workplace culture, CEO strategies, talent, future of work',
   },
@@ -2818,10 +3021,10 @@ const INTEREST_MAP = {
     label:   'Philosophy & Ideas',
     desc:    'The ideas, thinkers, and debates shaping how we understand the world.',
     feeds:   [
-      'https://news.google.com/rss/search?q=philosophy+ideas+ethics+society+thinking&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:aeon.co&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=intellectuals+thinkers+social+theory+debate&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=philosophy+ethics+moral+political+thought&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:theatlantic.com+ideas&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:bigthink.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=philosophy+ethics+intellectual+debate+ideas&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'philosophy, ideas, ethics, intellectual debates, social theory, thinkers, moral philosophy, political philosophy',
   },
@@ -2829,10 +3032,10 @@ const INTEREST_MAP = {
     label:   'Film & Entertainment',
     desc:    'Box office, streaming wars, Hollywood, and the business of making stories.',
     feeds:   [
-      'https://news.google.com/rss/search?q=film+movies+box+office+Hollywood&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:variety.com&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=streaming+Netflix+HBO+Disney+Amazon+television&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=entertainment+industry+studios+awards&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:hollywoodreporter.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:indiewire.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=film+streaming+Hollywood+box+office+television&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'film, television, streaming, Hollywood, box office, entertainment industry, Netflix, HBO, studios, awards',
   },
@@ -2840,10 +3043,10 @@ const INTEREST_MAP = {
     label:   'Music & Media',
     desc:    'Artists, labels, streaming, the business of sound, and where media is going.',
     feeds:   [
-      'https://news.google.com/rss/search?q=music+industry+artists+albums+tours&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=site:rollingstone.com&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=Spotify+Apple+Music+streaming+record+label&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=podcast+media+publishing+journalism&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:pitchfork.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:billboard.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:rollingstone.com+music&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=music+industry+streaming+label+artists&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'music, music industry, artists, streaming, record labels, media, publishing, podcasting',
   },
@@ -2851,10 +3054,10 @@ const INTEREST_MAP = {
     label:   'Food & Hospitality',
     desc:    'Restaurant culture, food business, culinary movements, and hospitality.',
     feeds:   [
-      'https://news.google.com/rss/search?q=food+restaurant+hospitality+culinary&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:eater.com&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=food+business+restaurant+industry+chef&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=hospitality+hotel+travel+food+trends&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:bonappetit.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:nrn.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=restaurant+food+culinary+hospitality+chef&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'food industry, restaurants, hospitality, culinary trends, food business, chefs, dining',
   },
@@ -2862,10 +3065,10 @@ const INTEREST_MAP = {
     label:   'Fashion & Design',
     desc:    'Luxury, streetwear, design culture, and the business of style.',
     feeds:   [
-      'https://news.google.com/rss/search?q=fashion+design+luxury+brand&hl=en-US&gl=US&ceid=US:en',
       'https://news.google.com/rss/search?q=site:businessoffashion.com&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=fashion+week+luxury+market+designer+retail&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=streetwear+sneaker+design+culture+brand&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:wwd.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:fastcompany.com+design&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=fashion+luxury+brand+retail+designer+streetwear&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'fashion, design, luxury brands, fashion industry, trends, retail, streetwear, designer labels',
   },
@@ -2873,10 +3076,10 @@ const INTEREST_MAP = {
     label:   'Personal Finance & Wealth',
     desc:    'Investing, tax strategy, financial independence, and building personal wealth.',
     feeds:   [
-      'https://news.google.com/rss/search?q=personal+finance+investing+wealth&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=401k+IRA+retirement+investing+savings&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=financial+independence+FIRE+passive+income&hl=en-US&gl=US&ceid=US:en',
-      'https://news.google.com/rss/search?q=tax+strategy+estate+planning+wealth+management&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:wsj.com+personal+finance&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:morningstar.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:kiplinger.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=personal+finance+investing+retirement+wealth&hl=en-US&gl=US&ceid=US:en',
     ],
     context: 'personal finance, investing, retirement planning, tax strategy, wealth building, financial independence, budgeting',
   },
@@ -2985,8 +3188,13 @@ function formatDateline(d) {
   });
 }
 
-function autoDetectMode() {
-  return new Date().getHours() < 12 ? 'morning' : 'afternoon';
+function autoDetectMode(schedule) {
+  const hour = new Date().getHours();
+  const s = schedule && schedule.length ? schedule : ['morning'];
+  if (hour >= 18 && s.includes('evening'))  return 'evening';
+  if (hour >= 12 && s.includes('midday'))   return 'midday';
+  if (s.includes('morning'))                return 'morning';
+  return s[0];
 }
 
 function escapeHtml(s) {
@@ -3069,6 +3277,7 @@ function addInterestToProfile(key) {
    ============================================================ */
 
 async function init() {
+  purgeStaleReadKeys();
   // Try Supabase session first
   try {
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -3701,7 +3910,6 @@ async function doSignUp(email, password, showError, submitBtn) {
     const { data, error } = await supabaseClient.auth.signUp({ email, password });
     if (error) throw error;
 
-    // Save profile to Supabase profiles table
     await supabaseClient.from('profiles').upsert({
       id:        data.user.id,
       name:      obData.name      || '',
@@ -3711,7 +3919,7 @@ async function doSignUp(email, password, showError, submitBtn) {
       depth:     obData.depth     || 'balanced',
       schedule:  obData.schedule.length ? obData.schedule : ['morning'],
       plan:      obData.tier      || 'free',
-    });
+    }, { onConflict: 'id' });
 
     profile = {
       name:               obData.name       || '',
@@ -3864,20 +4072,18 @@ function showStreakToast(count) {
    SECTION 7 — MAIN APP
    ============================================================ */
 
-let appMode      = autoDetectMode();
-let briefingData = {};
-let currentView  = 'briefing';
+let appMode              = 'morning';
+let briefingData         = {};
+let currentView          = 'briefing';
+let briefingSubView      = 'front';   // 'front' | 'detail'
+let currentDetailKey     = null;
+let lastSectionsWithItems = [];
+let sectionImages        = {};
 
 function showApp() {
   const app = $('app');
   app.classList.add('visible');
-  updateMasthead();
-  setAppMode(appMode);
   $('app-dateline').textContent = formatDateline(new Date());
-
-  // Sidebar — start hidden until generate completes
-  const sidebarEl = $('section-nav-bar');
-  if (sidebarEl) sidebarEl.style.display = 'none';
 
   // Streak
   const streak = updateStreak();
@@ -3889,9 +4095,8 @@ function showApp() {
   $('nav-explore').addEventListener('click',  () => switchView('explore'));
   $('nav-profile').addEventListener('click',  () => switchView('profile'));
 
-  // Mode toggle
-  $('mode-morning').addEventListener('click',   () => setAppMode('morning'));
-  $('mode-afternoon').addEventListener('click', () => setAppMode('afternoon'));
+  // Mode toggle — rendered dynamically from profile.schedule
+  renderModeToggle();
 
   // Generate
   $('generate-btn').addEventListener('click', onGenerate);
@@ -3908,21 +4113,57 @@ function showApp() {
   renderExplore();
 }
 
+const EDITION_LABEL = { morning: 'Morning', midday: 'Midday', evening: 'Evening' };
+
+function editionLabel(mode) {
+  return EDITION_LABEL[mode] || (mode ? mode.charAt(0).toUpperCase() + mode.slice(1) : 'Morning');
+}
+
+function renderModeToggle() {
+  const schedule = (profile && profile.schedule && profile.schedule.length)
+    ? profile.schedule : ['morning'];
+  appMode = autoDetectMode(schedule);
+
+  const toggle = $('mode-toggle');
+  if (!toggle) return;
+
+  if (schedule.length <= 1) {
+    toggle.style.display = 'none';
+    updateMasthead();
+    return;
+  }
+
+  toggle.style.display = '';
+  toggle.innerHTML = schedule.map(key =>
+    `<button data-mode="${key}" class="mode-btn${key === appMode ? ' active' : ''}"
+             aria-selected="${key === appMode}">${editionLabel(key)}</button>`
+  ).join('');
+  toggle.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => setAppMode(btn.dataset.mode));
+  });
+  updateMasthead();
+}
+
 function updateMasthead() {
   if (!profile) return;
-  const time = appMode === 'morning' ? 'Morning' : 'Afternoon';
-  $('masthead-title').textContent   = `${time} Briefing for ${profile.name}`;
-  $('app-edition').textContent      = `${time} Edition`;
+  const label = editionLabel(appMode);
+  $('masthead-title').textContent = `${label} Briefing for ${profile.name}`;
+  $('app-edition').textContent    = `${label} Edition`;
 }
 
 function setAppMode(m) {
   appMode = m;
-  $('mode-morning').classList.toggle('active',   m === 'morning');
-  $('mode-afternoon').classList.toggle('active', m === 'afternoon');
-  $('mode-morning').setAttribute('aria-selected',   m === 'morning'   ? 'true' : 'false');
-  $('mode-afternoon').setAttribute('aria-selected', m === 'afternoon' ? 'true' : 'false');
-  $('app-edition').textContent = m === 'morning' ? 'Morning Edition' : 'Afternoon Edition';
-  $('masthead-title').textContent = `${m === 'morning' ? 'Morning' : 'Afternoon'} Briefing for ${profile ? profile.name : ''}`;
+  const toggle = $('mode-toggle');
+  if (toggle) {
+    toggle.querySelectorAll('.mode-btn').forEach(btn => {
+      const active = btn.dataset.mode === m;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  }
+  const label = editionLabel(m);
+  $('app-edition').textContent    = `${label} Edition`;
+  $('masthead-title').textContent = `${label} Briefing for ${profile ? profile.name : ''}`;
 }
 
 function switchView(view) {
@@ -3935,18 +4176,10 @@ function switchView(view) {
     }
     const el = $(v + '-view');
     if (!el) return;
-    // Use explicit 'block' — these elements have display:none in CSS so '' would keep them hidden
     el.style.display = v === view ? 'block' : 'none';
   });
   if (view === 'explore') renderExplore();
   if (view === 'profile') renderProfile();
-  // Show sidebar only on briefing view when content is loaded
-  const sNav       = $('section-nav-bar');
-  const appContent = $('app-content');
-  const hasContent = $('briefing-content') && $('briefing-content').children.length > 0;
-  const showSidebar = view === 'briefing' && hasContent;
-  if (sNav)       sNav.style.display = showSidebar ? 'block' : 'none'; // explicit — never ''
-  if (appContent) appContent.classList.toggle('has-sidebar', showSidebar);
 }
 
 /* ── Generate / render briefing ─────────────────────────────── */
@@ -3954,7 +4187,11 @@ function switchView(view) {
 async function onGenerate() {
   hideError();
   onStop();
-  briefingData = {};
+  briefingData         = {};
+  sectionImages        = {};
+  currentDetailKey     = null;
+  briefingSubView      = 'front';
+  localStorage.removeItem(getTodayReadKey());
   $('briefing-content').innerHTML = '';
   $('audio-wrap').classList.remove('visible');
   $('state-empty').style.display  = 'none';
@@ -3972,31 +4209,41 @@ async function onGenerate() {
       return { ...s, items };
     }));
 
-    // 2. Render skeleton immediately
-    renderSections(sectionsWithItems);
+    // 2. Render Front Page skeleton immediately
+    lastSectionsWithItems = sectionsWithItems;
+    renderFrontPage(sectionsWithItems);
 
-    // 3. Write AI commentary section by section
+    // Fetch sports scores if user has sports-business section — non-blocking
+    if (sectionsWithItems.some(s => s.key === 'sports-business')) {
+      fetchSportsWidget().catch(() => {});
+    }
+
+    // 3. Write AI commentary section by section — track openers to prevent repetition
+    const usedOpenings = [];
     for (let i = 0; i < sectionsWithItems.length; i++) {
       const s = sectionsWithItems[i];
       setLoadingLabel(`Writing ${s.label.toLowerCase()}`);
+      console.log(`[Signal] Generating section ${i + 1}/${sectionsWithItems.length}: ${s.key}`);
       try {
-        const system = buildSystemPrompt(profile.tone, profile.name, appMode);
+        const system = buildSystemPrompt(profile.tone, profile.name, appMode, usedOpenings);
         const user   = buildUserPrompt(s.label, s.items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
-        const lede   = await fetchCommentary(system, user);
-        briefingData[s.key] = { lede, items: s.items, label: s.label };
-        injectLede(s.key, lede);
+        const data   = await fetchCommentary(system, user);
+        briefingData[s.key] = { lede: data, items: s.items, label: s.label };
+        injectLede(s.key, data);
+        console.log(`[Signal] ✓ ${s.key} done`);
+        // Record opener for anti-repetition in next sections
+        const ledeText = typeof data === 'string' ? data : (data.lede || '');
+        if (ledeText) usedOpenings.push(ledeText.trim().split(/\s+/).slice(0, 6).join(' '));
       } catch (err) {
-        console.warn('commentary failed:', s.key, err);
+        console.warn(`[Signal] ✗ ${s.key} failed (rate limited or error):`, err.message);
         briefingData[s.key] = { lede: null, items: s.items, label: s.label };
         injectLedeError(s.key);
       }
-      if (i < sectionsWithItems.length - 1) await wait(380);
+      if (i < sectionsWithItems.length - 1) await wait(800);
     }
 
     $('audio-wrap').classList.add('visible');
-
-    // Fire Signal Noticed — async, non-blocking, fails silently
-    fetchSignalNoticed(sectionsWithItems).catch(() => {});
+    updateGreetingReadTime();
 
   } catch (e) {
     console.error(e);
@@ -4008,113 +4255,446 @@ async function onGenerate() {
   }
 }
 
-async function fetchSignalNoticed(sections) {
-  const interests  = (profile?.interests || []).map(k => INTEREST_MAP[k]?.label).filter(Boolean).join(', ');
-  const headlines  = sections.map(s => s.items?.[0]?.title).filter(Boolean).join('\n');
-  if (!interests || !headlines) return;
+async function fetchSportsWidget() {
+  const mount = document.getElementById('sports-widget-mount');
+  if (!mount) return;
+  const res = await fetch('/api/sports');
+  if (!res.ok) return;
+  const { games } = await res.json();
+  if (!games || !games.length) return;
 
-  const system = 'You are Signal\'s intelligence layer. You identify non-obvious patterns across news topics.';
-  const user   = `The user follows these topics: ${interests}.\n\nHere are today\'s top headlines across all their sections:\n${headlines}\n\nIdentify one sharp, specific cross-topic pattern or convergence happening today. Write exactly one sentence. Be genuinely insightful and specific — reference actual topics or events. Do not start with "Signal noticed" or "I noticed". Just state the insight directly.`;
+  const hasLive = games.some(g => g.state === 'in');
 
-  const insight = await fetchCommentary(system, user);
-  if (!insight || !insight.trim()) return;
+  // Group by league label for display
+  const byLeague = [];
+  const seen = new Set();
+  for (const g of games) {
+    if (!seen.has(g.leagueLabel)) {
+      seen.add(g.leagueLabel);
+      byLeague.push({ label: g.leagueLabel, games: [] });
+    }
+    byLeague.find(b => b.label === g.leagueLabel).games.push(g);
+  }
 
-  // Inject card at top of briefing content
-  const container = $('briefing-content');
-  if (!container) return;
+  const rows = byLeague.map(({ label, games: lg }) => {
+    const gameRows = lg.map(g => {
+      const isLive  = g.state === 'in';
+      const hasScore = g.state === 'in' || g.state === 'post';
+      const scoreHtml = hasScore
+        ? `<span class="score">${g.away.score} – ${g.home.score}</span>`
+        : '';
+      const statusCls = isLive ? 'live' : '';
+      return `
+        <div class="sports-game-row">
+          <div class="sports-matchup">${escapeHtml(g.away.name)}${scoreHtml ? ' ' + scoreHtml + ' ' : ' vs '}${escapeHtml(g.home.name)}</div>
+          <div class="sports-status ${statusCls}">${escapeHtml(g.detail)}</div>
+        </div>`;
+    }).join('');
+    return `<div class="sports-league-group">
+      <div class="sports-league-label">${escapeHtml(label)}</div>
+      ${gameRows}
+    </div>`;
+  }).join('');
 
-  const card = document.createElement('div');
-  card.className = 'signal-noticed-card';
-  card.id        = 'signal-noticed';
-  card.innerHTML = `
-    <div class="signal-noticed-label">Signal Noticed</div>
-    <div class="signal-noticed-text">${escapeHtml(cleanupLede(insight))}</div>`;
-
-  container.insertBefore(card, container.firstChild);
-  requestAnimationFrame(() => card.classList.add('shown'));
+  mount.innerHTML = `
+    <div class="sports-widget">
+      <div class="sports-widget-header">
+        <div class="sports-widget-dot${hasLive ? '' : ' past'}"></div>
+        <div class="sports-widget-label">${hasLive ? 'Live Scores' : 'Scores'}</div>
+      </div>
+      ${rows}
+    </div>`;
 }
 
 function setLoadingLabel(txt) {
   $('loading-label').textContent = txt;
 }
 
-function renderSections(sections) {
-  const container = $('briefing-content');
-  container.innerHTML = '';
+function renderGreetingHeader(sections) {
+  const mount = $('fp-greeting');
+  if (!mount) return;
 
-  // Build section nav
-  buildSectionNav(sections);
+  const hour = new Date().getHours();
+  const timeOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+  const firstName = ((profile?.name || '').split(' ')[0]) || 'there';
 
-  sections.forEach((s, idx) => {
-    const el = document.createElement('section');
-    el.className       = 'story-section';
-    el.id              = 'section-' + s.key;
-    el.dataset.section = s.key;
-    el.innerHTML = `
-      <div class="section-head">
-        <span class="section-num">No.&nbsp;${String(idx + 1).padStart(2, '0')}</span>
-        <h2 class="section-name">${escapeHtml(s.label)}</h2>
-        <button class="section-share-btn" data-section-key="${escapeHtml(s.key)}" data-section-label="${escapeHtml(s.label)}">Share ↗</button>
-      </div>
-      <p class="section-lede placeholder" data-key="${escapeHtml(s.key)}">
-        <em>Writing the take<span class="loading-dots"></span></em>
-      </p>
-      <div class="headlines-label">Today's stories</div>
-      <ol class="headlines" id="hl-${escapeHtml(s.key)}">
-        ${s.items.map((it, i) => `
-          <li id="hl-item-${escapeHtml(s.key)}-${i}" data-title="${escapeHtml(it.title)}" data-link="${escapeHtml(it.link)}" data-source="${escapeHtml(it.source||'')}" data-section="${escapeHtml(s.label)}">
-            <a href="${escapeHtml(it.link)}" target="_blank" rel="noopener noreferrer">
-              <span class="hl-title">${escapeHtml(it.title)}</span>
-              ${it.source ? `<span class="hl-src">${escapeHtml(it.source)}</span>` : ''}
-            </a>
-            <button class="hl-bookmark${isSaved(it.link) ? ' saved' : ''}" aria-label="Save story" data-link="${escapeHtml(it.link)}">
-              ${isSaved(it.link) ? bookmarkFilledSVG() : bookmarkOutlineSVG()}
-            </button>
-          </li>`).join('')}
-      </ol>`;
-    container.appendChild(el);
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-    if (idx < sections.length - 1) {
-      const orn = document.createElement('div');
-      orn.className   = 'section-ornament';
-      orn.textContent = '· · ·';
-      container.appendChild(orn);
+  mount.innerHTML = `
+    <div class="fp-greeting-line">Good ${timeOfDay}, ${escapeHtml(firstName)}.</div>
+    <div class="fp-greeting-meta">${sections.length} sections ready · Est. <span id="fp-read-time">—</span> min read · ${escapeHtml(dateStr)}</div>`;
+}
+
+function updateGreetingReadTime() {
+  const el = document.getElementById('fp-read-time');
+  if (!el) return;
+  const total = Object.values(briefingData).reduce((sum, d) => {
+    const ledeText = typeof d?.lede === 'string' ? d.lede : (d?.lede?.lede || '');
+    return sum + getReadTime(ledeText);
+  }, 0);
+  if (total > 0) el.textContent = total;
+}
+
+/* ── Read tracking ───────────────────────────────────────────── */
+function getTodayReadKey() {
+  return 'signal:read:' + new Date().toLocaleDateString('en-CA');
+}
+function purgeStaleReadKeys() {
+  const today = getTodayReadKey();
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('signal:read:') && k !== today) {
+      localStorage.removeItem(k);
     }
-
-    requestAnimationFrame(() => el.classList.add('shown'));
-
-    // Wire share button
-    const shareBtn = el.querySelector('.section-share-btn');
-    if (shareBtn) {
-      shareBtn.addEventListener('click', () => shareSection(s.key, s.label, s.items));
+  }
+}
+function getReadSections() {
+  try {
+    const raw = localStorage.getItem(getTodayReadKey());
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    // New format: {ts, keys[]} — validate timestamp is from today in local time
+    if (parsed && !Array.isArray(parsed) && parsed.ts && Array.isArray(parsed.keys)) {
+      const writtenDate = new Date(parsed.ts).toLocaleDateString('en-CA');
+      if (writtenDate !== new Date().toLocaleDateString('en-CA')) {
+        localStorage.removeItem(getTodayReadKey());
+        return [];
+      }
+      return parsed.keys;
     }
+    // Old format: plain array — was written today per key match, accept it
+    return Array.isArray(parsed) ? parsed : [];
+  } catch(_) { return []; }
+}
+function saveReadSections(keys) {
+  localStorage.setItem(getTodayReadKey(), JSON.stringify({ ts: Date.now(), keys }));
+}
+function markSectionRead(key) {
+  const read = getReadSections();
+  if (!read.includes(key)) {
+    read.push(key);
+    saveReadSections(read);
+  }
+  updateFrontPageReadState(key);
+  updateProgressIndicator();
+}
 
-    // Fetch one landscape image for the section lede
-    fetchSectionImage(s.label, s.key).catch(() => {});
-
-    // Wire bookmark buttons
-    el.querySelectorAll('.hl-bookmark').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const li     = btn.closest('li');
-        const story  = {
-          title:       li.dataset.title,
-          link:        li.dataset.link,
-          source:      li.dataset.source,
-          sectionName: li.dataset.section,
-          savedAt:     new Date().toISOString(),
-        };
-        toggleSaved(story);
-        const saved = isSaved(story.link);
-        btn.classList.toggle('saved', saved);
-        btn.innerHTML = saved ? bookmarkFilledSVG() : bookmarkOutlineSVG();
-        btn.setAttribute('aria-label', saved ? 'Unsave story' : 'Save story');
-      });
+/* ── Saved briefs ────────────────────────────────────────────── */
+const BRIEFS_KEY = 'signal:saved:briefs';
+function getSavedBriefs() {
+  try { return JSON.parse(localStorage.getItem(BRIEFS_KEY) || '[]'); }
+  catch(_) { return []; }
+}
+function isBriefSaved(key) { return getSavedBriefs().some(b => b.key === key); }
+function toggleBriefSaved(key) {
+  let briefs = getSavedBriefs();
+  const idx = briefs.findIndex(b => b.key === key);
+  if (idx === -1) {
+    const d = briefingData[key];
+    const ledeObj = typeof d?.lede === 'string' ? { lede: d.lede } : (d?.lede || {});
+    briefs.unshift({
+      key,
+      label:   d?.label || key,
+      date:    new Date().toISOString().slice(0, 10),
+      kicker:  ledeObj.kicker || null,
+      lede:    (ledeObj.lede || '').slice(0, 400),
+      savedAt: new Date().toISOString(),
     });
+  } else {
+    briefs.splice(idx, 1);
+  }
+  localStorage.setItem(BRIEFS_KEY, JSON.stringify(briefs));
+}
+
+/* ── Source attribution ──────────────────────────────────────── */
+function buildSourceLine(items) {
+  const sources = [...new Set((items || []).map(it => it.source).filter(Boolean))];
+  if (!sources.length) return '';
+  if (sources.length === 1) return `Sourced from ${sources[0]}`;
+  if (sources.length === 2) return `Sourced from ${sources[0]} and ${sources[1]}`;
+  return `Sourced from ${sources[0]}, ${sources[1]}, and ${sources.length - 2} other${sources.length - 2 > 1 ? 's' : ''}`;
+}
+
+/* ── Front Page ──────────────────────────────────────────────── */
+function renderFrontPage(sections) {
+  briefingSubView  = 'front';
+  currentDetailKey = null;
+  const container  = $('briefing-content');
+  const read       = getReadSections();
+
+  container.innerHTML = `
+    <div id="fp-view">
+      <div id="fp-greeting"></div>
+      <div class="fp-progress" id="fp-progress"></div>
+      <div id="fp-glance"></div>
+      <div class="fp-grid" id="fp-grid"></div>
+    </div>
+    <div id="dv-view" style="display:none"></div>`;
+
+  updateProgressIndicator();
+  renderGreetingHeader(sections);
+  renderGlanceCard(sections);
+
+  sections.forEach(s => {
+    const isRead  = read.includes(s.key);
+    const cardEl  = document.createElement('div');
+    cardEl.className   = `fp-card${isRead ? ' fp-card-read' : ''}`;
+    cardEl.dataset.key = s.key;
+    cardEl.innerHTML   = fpCardInnerHTML(s, isRead);
+    cardEl.addEventListener('click', () => navigateToDetail(s.key));
+    $('fp-grid').appendChild(cardEl);
+    fetchSectionImage(s.label, s.key).catch(() => {});
+  });
+}
+
+/* ── Today at a Glance ───────────────────────────────────────── */
+function renderGlanceCard(sections) {
+  const mount = $('fp-glance');
+  if (!mount) return;
+
+  const rows = sections.map(s => {
+    const emoji = INTEREST_EMOJI[s.key] || '·';
+    return `<div class="glance-row" data-key="${escapeHtml(s.key)}" role="button" tabindex="0">
+      <span class="glance-icon">${emoji}</span>
+      <span class="glance-label">${escapeHtml(s.label)}</span>
+      <span class="glance-text" id="glance-${escapeHtml(s.key)}"><span class="glance-loading">Writing…</span></span>
+      <span class="glance-arrow">→</span>
+    </div>`;
+  }).join('');
+
+  mount.innerHTML = `
+    <div class="glance-card">
+      <div class="glance-header">Today at a Glance</div>
+      ${rows}
+    </div>`;
+
+  mount.querySelectorAll('.glance-row').forEach(row => {
+    const handler = () => navigateToDetail(row.dataset.key);
+    row.addEventListener('click', handler);
+    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handler(); });
+  });
+}
+
+function updateGlanceRow(key, highlight) {
+  const el = document.getElementById(`glance-${key}`);
+  if (el && highlight) el.innerHTML = escapeHtml(highlight);
+}
+
+function fpCardInnerHTML(s, isRead) {
+  const d         = briefingData[s.key];
+  const ledeObj   = typeof d?.lede === 'string' ? { lede: d.lede } : (d?.lede || {});
+  const highlight = ledeObj.highlight || '';
+  const ledeText  = ledeObj.lede || '';
+  const preview   = highlight || (ledeText ? ledeText.slice(0, 120).replace(/\s\S+$/, '') + '…' : '');
+  const mins      = ledeText ? getReadTime(ledeText) : null;
+  const imgSrc    = sectionImages[s.key] || '';
+
+  return `
+    <div class="fp-card-img${imgSrc ? '' : ' fp-card-img-empty'}">
+      <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(s.label)}" loading="lazy"
+           onerror="this.closest('.fp-card-img').classList.add('fp-card-img-error')"
+           style="${imgSrc ? '' : 'display:none'}">
+      ${isRead ? '<div class="fp-read-badge">✓ Read</div>' : ''}
+    </div>
+    <div class="fp-card-body">
+      <div class="fp-card-label">${escapeHtml(s.label)}</div>
+      ${preview ? `<div class="fp-card-preview">${escapeHtml(preview)}</div>` : '<div class="fp-card-preview fp-loading">Writing…</div>'}
+      ${mins    ? `<div class="fp-card-meta">~${mins} min read</div>` : '<div class="fp-card-meta"></div>'}
+    </div>`;
+}
+
+function updateFrontPageCard(key, d) {
+  const card = document.querySelector(`.fp-card[data-key="${CSS.escape(key)}"]`);
+  if (!card) return;
+  const s = lastSectionsWithItems.find(s => s.key === key);
+  if (!s) return;
+  card.innerHTML = fpCardInnerHTML(s, getReadSections().includes(key));
+  // Update glance row with highlight
+  updateGlanceRow(key, d.highlight || '');
+}
+
+function updateFrontPageReadState(key) {
+  const card = document.querySelector(`.fp-card[data-key="${CSS.escape(key)}"]`);
+  if (card) {
+    card.classList.add('fp-card-read');
+    const badge = card.querySelector('.fp-read-badge');
+    if (!badge) {
+      const imgWrap = card.querySelector('.fp-card-img');
+      if (imgWrap) {
+        const b = document.createElement('div');
+        b.className = 'fp-read-badge';
+        b.textContent = '✓ Read';
+        imgWrap.appendChild(b);
+      }
+    }
+  }
+}
+
+function updateProgressIndicator() {
+  const el = $('fp-progress');
+  if (!el || !lastSectionsWithItems.length) return;
+  const read  = getReadSections();
+  const count = lastSectionsWithItems.filter(s => read.includes(s.key)).length;
+  el.textContent = count > 0 ? `${count} of ${lastSectionsWithItems.length} read today` : '';
+  el.style.display = count > 0 ? 'block' : 'none';
+}
+
+/* ── Detail View ─────────────────────────────────────────────── */
+function navigateToDetail(key) {
+  markSectionRead(key);
+  currentDetailKey = key;
+  briefingSubView  = 'detail';
+  renderDetailView(key);
+
+  const fpView = $('fp-view');
+  const dvView = $('dv-view');
+  if (!fpView || !dvView) return;
+
+  fpView.style.transition = 'opacity 0.25s';
+  fpView.style.opacity    = '0';
+  setTimeout(() => {
+    fpView.style.display = 'none';
+    dvView.style.display = 'block';
+    dvView.style.opacity = '0';
+    dvView.style.transition = 'opacity 0.25s';
+    requestAnimationFrame(() => { dvView.style.opacity = '1'; });
+    dvView.scrollIntoView ? dvView.scrollIntoView({ block: 'start' }) : window.scrollTo(0, 0);
+  }, 220);
+
+}
+
+function navigateToFrontPage() {
+  briefingSubView  = 'front';
+  currentDetailKey = null;
+
+  const fpView = $('fp-view');
+  const dvView = $('dv-view');
+  if (!fpView || !dvView) return;
+
+  dvView.style.transition = 'opacity 0.25s';
+  dvView.style.opacity    = '0';
+  setTimeout(() => {
+    dvView.style.display = 'none';
+    fpView.style.display = 'block';
+    fpView.style.opacity = '0';
+    fpView.style.transition = 'opacity 0.25s';
+    requestAnimationFrame(() => { fpView.style.opacity = '1'; });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 220);
+
+}
+
+function renderDetailView(key) {
+  const dvView  = $('dv-view');
+  if (!dvView) return;
+  const idx     = lastSectionsWithItems.findIndex(s => s.key === key);
+  const s       = lastSectionsWithItems[idx];
+  if (!s) return;
+  const d       = briefingData[key];
+  const ledeObj = typeof d?.lede === 'string' ? { lede: d.lede } : (d?.lede || {});
+  const imgSrc  = sectionImages[key] || '';
+  const saved   = isBriefSaved(key);
+  const srcLine = buildSourceLine(s.items);
+  const prevS   = lastSectionsWithItems[idx - 1];
+  const nextS   = lastSectionsWithItems[idx + 1];
+
+  dvView.innerHTML = `
+    <div class="dv-wrap">
+      <div class="dv-topbar">
+        <button class="dv-back-btn" id="dv-back-btn">← All Sections</button>
+        <button class="dv-bookmark-btn${saved ? ' saved' : ''}" id="dv-bookmark-btn" aria-label="${saved ? 'Unsave' : 'Save'} this brief">
+          ${saved ? bookmarkFilledSVG() : bookmarkOutlineSVG()}
+        </button>
+      </div>
+
+      ${imgSrc ? `<div class="dv-hero"><img id="dv-hero-img" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(s.label)}" loading="lazy"></div>` : `<div class="dv-hero dv-hero-empty"><img id="dv-hero-img" src="" style="display:none" alt="${escapeHtml(s.label)}"></div>`}
+
+      <article class="dv-article">
+        <div class="dv-head">
+          <span class="section-num">No.&nbsp;${String(idx + 1).padStart(2, '0')}</span>
+          <h2 class="dv-title">${escapeHtml(s.label)}</h2>
+        </div>
+
+        ${s.key === 'sports-business' ? '<div id="sports-widget-mount"></div>' : ''}
+
+        <div id="dv-lede-wrap">
+          ${renderDetailLedeHTML(key, ledeObj)}
+        </div>
+
+        ${srcLine ? `<div class="dv-source-line">${escapeHtml(srcLine)}</div>` : ''}
+
+        <div class="dv-deeper">
+          <button class="dv-deeper-btn" id="dv-deeper-btn">Go deeper ⌄</button>
+          <div class="dv-deeper-content" id="dv-deeper-content" hidden>
+            <ol class="headlines">
+              ${s.items.map(it => `
+                <li>
+                  <a href="${escapeHtml(it.link)}" target="_blank" rel="noopener noreferrer">
+                    <span class="hl-title">${escapeHtml(it.title)}</span>
+                    ${it.source ? `<span class="hl-src">${escapeHtml(it.source)}</span>` : ''}
+                  </a>
+                </li>`).join('')}
+            </ol>
+          </div>
+        </div>
+
+        <nav class="dv-nav">
+          ${prevS ? `<button class="dv-nav-btn dv-prev-btn" data-key="${escapeHtml(prevS.key)}">← ${escapeHtml(prevS.label)}</button>` : '<span></span>'}
+          ${nextS ? `<button class="dv-nav-btn dv-next-btn" data-key="${escapeHtml(nextS.key)}">${escapeHtml(nextS.label)} →</button>` : '<span></span>'}
+        </nav>
+      </article>
+    </div>`;
+
+  // Wire events
+  $('dv-back-btn').addEventListener('click', navigateToFrontPage);
+
+  $('dv-bookmark-btn').addEventListener('click', () => {
+    toggleBriefSaved(key);
+    const btn2 = $('dv-bookmark-btn');
+    const sv   = isBriefSaved(key);
+    btn2.classList.toggle('saved', sv);
+    btn2.innerHTML = sv ? bookmarkFilledSVG() : bookmarkOutlineSVG();
+    btn2.setAttribute('aria-label', sv ? 'Unsave this brief' : 'Save this brief');
   });
 
-  // Start scroll-spy after a beat
-  setTimeout(() => initSectionScrollSpy(sections), 300);
+  $('dv-deeper-btn').addEventListener('click', () => {
+    const content = $('dv-deeper-content');
+    const btn2    = $('dv-deeper-btn');
+    const open    = !content.hidden;
+    content.hidden = open;
+    btn2.textContent = open ? 'Go deeper ⌄' : 'Go deeper ⌃';
+  });
+
+  dvView.querySelectorAll('.dv-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => navigateToDetail(btn.dataset.key));
+  });
+
+  // Sports widget if needed
+  if (s.key === 'sports-business') fetchSportsWidget().catch(() => {});
+}
+
+function renderDetailLedeHTML(key, ledeObj) {
+  const kicker  = ledeObj.kicker || '';
+  const parts   = (ledeObj.lede || '').split(/\n\n/).map(p => p.trim()).filter(Boolean);
+  let html = '';
+  if (kicker) html += `<p class="section-kicker">${escapeHtml(kicker)}</p>`;
+  if (!parts.length) {
+    html += `<p class="section-lede" data-key="${escapeHtml(key)}" style="color:var(--muted);font-style:italic">Writing commentary…</p>`;
+    return html;
+  }
+  parts.forEach((p, i) => {
+    html += i === 0
+      ? `<p class="section-lede" data-key="${escapeHtml(key)}">${escapeHtml(p)}</p>`
+      : `<p class="section-lede-cont">${escapeHtml(p)}</p>`;
+  });
+  return html;
+}
+
+function renderDetailLede(key, d) {
+  const wrap = $('dv-lede-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = renderDetailLedeHTML(key, d);
 }
 
 /* ── Saved stories helpers ───────────────────────────────────── */
@@ -4175,145 +4755,86 @@ async function shareSection(key, label, items) {
 
 async function fetchSectionImage(interestLabel, sectionKey) {
   try {
-    const page = Math.floor(Math.random() * 10) + 1;
+    const page   = Math.floor(Math.random() * 10) + 1;
     const params = new URLSearchParams({ query: interestLabel, per_page: '3', orientation: 'landscape', page: String(page) });
-    const res = await fetch(`/api/pexels?${params}`);
+    const res    = await fetch(`/api/pexels?${params}`);
     if (!res.ok) return;
-    const data = await res.json();
+    const data   = await res.json();
     const photos = data?.photos;
     if (!photos || !photos.length) return;
-    // Pick a random result from the 3 returned
     const photo  = photos[Math.floor(Math.random() * photos.length)];
     const imgUrl = photo?.src?.large || photo?.src?.medium;
     if (!imgUrl) return;
 
-    // Inject the image above the lede
-    const section = document.getElementById('section-' + sectionKey);
-    if (!section) return;
-    const lede    = section.querySelector('.section-lede');
-    if (!lede) return;
+    // Store for later use in detail view
+    sectionImages[sectionKey] = imgUrl;
 
-    const wrap = document.createElement('div');
-    wrap.className = 'section-lede-image-wrap';
-    const img  = document.createElement('img');
-    img.className = 'section-lede-image';
-    img.src     = imgUrl;
-    img.alt     = interestLabel;
-    img.loading = 'lazy';
-    img.onerror = () => wrap.remove(); // hide gracefully on error
-    const credit = document.createElement('div');
-    credit.className   = 'section-lede-image-credit';
-    credit.textContent = 'Photo: Pexels';
-    wrap.appendChild(img);
-    wrap.appendChild(credit);
-
-    lede.parentNode.insertBefore(wrap, lede);
-  } catch (_) { /* fail silently */ }
-}
-
-function buildSectionNav(sections) {
-  const sidebar      = $('section-nav-bar');
-  const sidebarInner = $('section-nav-inner');
-  const mobileWrap   = $('section-pills-mobile-inner');
-  if (!sidebar || !sidebarInner) return;
-
-  sidebarInner.innerHTML = '';
-  if (mobileWrap) mobileWrap.innerHTML = '';
-
-  sections.forEach(s => {
-    const scrollTo = () => {
-      const target = document.getElementById('section-' + s.key);
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-
-    // Sidebar pill
-    const pill = document.createElement('button');
-    pill.className      = 'section-nav-pill';
-    pill.dataset.key    = s.key;
-    pill.textContent    = s.label;
-    pill.addEventListener('click', scrollTo);
-    sidebarInner.appendChild(pill);
-
-    // Mobile pill (duplicate, separate element)
-    if (mobileWrap) {
-      const mp = document.createElement('button');
-      mp.className      = 'section-pill-mobile';
-      mp.dataset.key    = s.key;
-      mp.textContent    = s.label;
-      mp.addEventListener('click', scrollTo);
-      mobileWrap.appendChild(mp);
+    // Update front page card image
+    const imgEl = document.querySelector(`.fp-card[data-key="${CSS.escape(sectionKey)}"] .fp-card-img img`);
+    if (imgEl) {
+      imgEl.src = imgUrl;
+      imgEl.onerror = () => { imgEl.closest('.fp-card-img')?.classList.add('fp-card-img-error'); };
     }
-  });
 
-  // Show sidebar + shift content — must use explicit 'block', not ''
-  sidebar.style.display = 'block';
-  const appContent = $('app-content');
-  if (appContent) appContent.classList.add('has-sidebar');
+    // Update detail view image if this section is currently open
+    if (briefingSubView === 'detail' && currentDetailKey === sectionKey) {
+      const dvImg = document.getElementById('dv-hero-img');
+      if (dvImg) { dvImg.src = imgUrl; dvImg.style.display = 'block'; }
+    }
+  } catch (_) {}
 }
 
-let sectionObserver = null;
-function initSectionScrollSpy(sections) {
-  if (sectionObserver) sectionObserver.disconnect();
 
-  // Map section key → sidebar pill + mobile pill
-  const pillMap = {};
-  ($('section-nav-inner') || { querySelectorAll: () => [] })
-    .querySelectorAll('.section-nav-pill')
-    .forEach(p => { pillMap[p.dataset.key] = pillMap[p.dataset.key] || []; pillMap[p.dataset.key].push(p); });
-  ($('section-pills-mobile-inner') || { querySelectorAll: () => [] })
-    .querySelectorAll('.section-pill-mobile')
-    .forEach(p => { pillMap[p.dataset.key] = pillMap[p.dataset.key] || []; pillMap[p.dataset.key].push(p); });
 
-  sectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const key   = entry.target.dataset.section;
-      const pills = pillMap[key] || [];
-      pills.forEach(p => p.classList.toggle('active', entry.isIntersecting));
-    });
-  }, { rootMargin: '-10% 0px -60% 0px', threshold: 0 });
+function injectLede(key, data) {
+  // Store in briefingData (already done by caller, but ensure)
+  const d = (typeof data === 'string') ? { lede: data } : (data || { lede: '' });
 
-  sections.forEach(s => {
-    const el = document.getElementById('section-' + s.key);
-    if (el) sectionObserver.observe(el);
-  });
+  // Update front page card
+  updateFrontPageCard(key, d);
+
+  // If this section is open in detail view, update it live
+  if (briefingSubView === 'detail' && currentDetailKey === key) {
+    renderDetailLede(key, d);
+  }
 }
 
-function injectLede(key, text) {
-  const el = $('briefing-content').querySelector(`.section-lede[data-key="${key}"]`);
-  if (!el) return;
-  el.classList.remove('placeholder');
-  el.textContent = text;
-  updateReadingTime(key, text);
+function ledePartsFromData(d) {
+  return (d.lede || '').split(/\n\n/).map(s => s.trim()).filter(Boolean);
+}
+
+function buildLedeHtml(key, d) {
+  const parts = ledePartsFromData(d);
+  if (!parts.length) return `<p class="section-lede" data-key="${escapeHtml(key)}"></p>`;
+  return parts.map((p, i) =>
+    i === 0
+      ? `<p class="section-lede" data-key="${escapeHtml(key)}">${escapeHtml(p)}</p>`
+      : `<p class="section-lede-cont">${escapeHtml(p)}</p>`
+  ).join('');
+}
+
+function getReadTime(ledeText) {
+  const words = (ledeText || '').split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 200));
 }
 
 function updateReadingTime(key, ledeText) {
-  const section = document.getElementById('section-' + key);
-  if (!section) return;
-
-  // Count words in lede + all headline titles
-  let wordCount = (ledeText || '').split(/\s+/).filter(Boolean).length;
-  section.querySelectorAll('.hl-title').forEach(el => {
-    wordCount += el.textContent.split(/\s+/).filter(Boolean).length;
-  });
-
-  const minutes = Math.max(1, Math.ceil(wordCount / 200));
-  const sectionNum = section.querySelector('.section-num');
-  if (!sectionNum) return;
-
-  // Remove existing reading time if re-generating
-  const existing = section.querySelector('.section-read-time');
-  if (existing) existing.remove();
-
-  const span = document.createElement('span');
-  span.className   = 'section-read-time';
-  span.textContent = `· ~${minutes} min read`;
-  span.style.cssText = 'font-size:12px;color:var(--muted);font-family:var(--sans);font-weight:400;margin-left:8px;letter-spacing:0';
-  sectionNum.parentNode.insertBefore(span, sectionNum.nextSibling);
+  // Update read time on front page card
+  const el = document.querySelector(`.fp-card[data-key="${CSS.escape(key)}"] .fp-card-meta`);
+  if (el) el.textContent = `~${getReadTime(ledeText)} min read`;
 }
 
 function injectLedeError(key) {
-  const el = $('briefing-content').querySelector(`.section-lede[data-key="${key}"]`);
-  if (el) { el.classList.add('placeholder'); el.innerHTML = '<em>Commentary skipped — the free model didn\'t answer. Hit Regenerate.</em>'; }
+  const card = document.querySelector(`.fp-card[data-key="${escapeHtml(key)}"]`);
+  if (card) {
+    card.classList.add('fp-card-error');
+    const preview = card.querySelector('.fp-card-preview');
+    if (preview) {
+      preview.classList.remove('fp-loading');
+      preview.textContent = "Signal couldn't reach this section — try regenerating.";
+    }
+  }
+  updateGlanceRow(key, "Couldn't load — try regenerating.");
 }
 
 /* ── Error UI ────────────────────────────────────────────────── */
@@ -4444,7 +4965,7 @@ async function loadExploreTopic(key) {
       ${!inSignal ? `<button class="explore-add-btn" id="explore-add-btn">+ Add to my Signal</button>` : '<span style="font-size:12px;color:var(--success)">✓ In your Signal</span>'}
     </div>
     ${lede ? `
-    <p class="section-lede" style="margin-bottom:20px">${escapeHtml(lede)}</p>` : ''}
+    <p class="section-lede" style="margin-bottom:20px">${escapeHtml(typeof lede === 'string' ? lede : (lede.lede || ''))}</p>` : ''}
     ${items.length > 0 ? `
     <div class="headlines-label">Today's stories</div>
     <ol class="headlines">
@@ -4481,106 +5002,208 @@ async function loadExploreTopic(key) {
    SECTION 9 — LLM (Groq + Pollinations)
    ============================================================ */
 
-function buildSystemPrompt(tone, name, mode) {
-  const time   = mode === 'morning' ? 'morning' : 'afternoon';
+function buildSystemPrompt(tone, name, mode, usedOpenings = []) {
+  const timeLabel = { morning: 'morning', midday: 'midday', evening: 'evening' };
+  const time = timeLabel[mode] || 'morning';
 
-  const shared = `Write 5 to 7 sentences as ONE flowing paragraph. Cover the bulk of the headlines — don't fixate on just one story. Connect them where it makes sense. NO lists, NO markdown, NO bold, NO headers. Do NOT open with a greeting, the reader's name, or throat-clearing like "Alright", "So", "Look", "Okay", or "Hey". Start directly with the insight.`;
+  const editionFraming = mode === 'evening'
+    ? 'This is the evening edition. Recap the day\'s key developments, draw connections across the arc of today\'s news, and look ahead to what tomorrow may bring.'
+    : mode === 'midday'
+    ? 'This is the midday edition. Follow up on morning developments, add analytical depth as stories have evolved, and surface what\'s shaping the rest of the day.'
+    : 'This is the morning edition. Focus on overnight and early-breaking developments — set the stage for what to watch today.';
+
+  const clicheBan = `BANNED WORDS AND PHRASES — never use under any circumstances: "abuzz", "making waves", "is making headlines", "taking the world by storm", "sparking debate", "game-changer", "paradigm shift", "on the horizon", "moving the needle", "at the end of the day", "make no mistake", "in a world where", "landscape", "ecosystem" (when used metaphorically), "unpack", "double down", "amid growing", "has emerged". Write with original vocabulary every time.`;
+
+  const openerBan = usedOpenings.length > 0
+    ? `FORBIDDEN OPENERS — these exact phrase starts have been used in earlier sections of this same briefing. Your lede MUST open with completely different words and structure: ${usedOpenings.map(o => `"${o}…"`).join('; ')}.`
+    : '';
+
+  const jsonSchema = `You MUST respond with valid JSON only — no markdown, no prose outside the JSON. Use exactly this structure:
+{"highlight":"one punchy specific sentence — the single most important takeaway from this section, written to stand alone and be genuinely interesting to a smart reader independent of any other context","kicker":"optional — see rules below","lede":"Paragraph 1 (3-4 sentences): the concrete facts — what happened.\n\nParagraph 2 (3-4 sentences): context — why it's developing this way, the stakes and competing forces.\n\nParagraph 3 (2-3 sentences): what to watch next and the broader implication. End with the sharpest possible closing line."}
+
+HIGHLIGHT RULES: The highlight must be specific, not vague — name the actual companies, numbers, people, or events involved. It should be a genuine insight, not a restatement of the headline. No clichés. This appears in a cross-briefing glance view alongside highlights from every other section.
+
+LEDE RULES: Write 300-350 words total across exactly THREE paragraphs separated by literal \\n\\n in the JSON string. This is substantive editorial journalism, not a teaser — the reader should come away with a real understanding of the story, its context, and its significance. Smooth prose, varied sentence rhythm, no throat-clearing opener. The closing line of paragraph 3 must be the single sharpest insight in the piece.
+
+KICKER RULES: The kicker is a single italic line above the lede — like a magazine pullout. Include it ONLY when the source material contains either (a) a genuinely memorable real quote under 15 words with clear attribution, formatted as: \\"Quote text\\" — Name, or (b) a single striking real number that reframes the story, formatted as: 47% — brief context. Omit in most sections (1 in 4 at most). Never fabricate. Omit the key entirely if there is no kicker.`;
+
+  const shared = `${clicheBan} ${openerBan} Write like a skilled editorial columnist — flowing prose, specific and substantive, varied sentence rhythm. Do NOT open with a greeting, the reader's name, or throat-clearing. Start the lede directly with the story. ${jsonSchema}`;
 
   if (tone === 'sharp') {
-    return `You are Signal — ${name}'s ${time} intelligence briefing. Write with precision and authority. No filler, no hedging, no soft qualifiers. Assume the reader is the sharpest person in the room. Every word earns its place. ${shared}`;
+    return `You are Signal — ${name}'s ${time} intelligence briefing. Write with precision and authority. No filler, no hedging, no soft qualifiers. Assume the reader is the sharpest person in the room. Every word earns its place. ${editionFraming} ${shared}`;
   }
   if (tone === 'bold') {
-    return `You are Signal — ${name}'s ${time} briefing with a point of view. Take clear editorial positions. Readers come for your actual take, not a summary of all sides. Be direct, be confident, have opinions. ${shared}`;
+    return `You are Signal — ${name}'s ${time} briefing with a point of view. Take clear editorial positions. Readers come for your actual take, not a summary of all sides. Be direct, be confident, have opinions. ${editionFraming} ${shared}`;
   }
-  return `You are Signal — ${name}'s ${time} intelligence companion. Smart but relaxed — like a well-read friend catching you up over coffee. Intelligent but never stiff. Natural language, never forced. ${shared}`;
+  return `You are Signal — ${name}'s ${time} intelligence companion. Smart but relaxed — like a well-read friend catching you up over coffee. Intelligent but never stiff. Natural language, never forced. ${editionFraming} ${shared}`;
 }
 
 function buildUserPrompt(sectionLabel, items, depth) {
   const depthNote = depth === 'quick'
-    ? 'Be tight and efficient — 4 to 5 sentences max.'
+    ? 'Keep the lede to around 200 words total — tight paragraphs, essential only, but still 3 clear paragraphs.'
     : depth === 'deep'
-    ? 'Go deep — connect the dots, give full context and perspective. Up to 8 sentences.'
+    ? 'Push the lede to 400-450 words — deep context, multiple angles, strong consequence analysis, and a decisive closing line.'
     : '';
   const bullets = items.map((it, i) =>
     `${i + 1}. ${it.title}${it.source ? ' (' + it.source + ')' : ''}`
   ).join('\n');
-  return `Section: ${sectionLabel}\nToday's headlines:\n${bullets}\n\nWrite the briefing paragraph.${depthNote ? ' ' + depthNote : ''}`;
+  return `Section: ${sectionLabel}\nHeadlines:\n${bullets}\n\nReturn the JSON briefing object.${depthNote ? ' ' + depthNote : ''}`;
 }
 
 function getMaxTokens(depth) {
-  if (depth === 'quick') return 200;
-  if (depth === 'deep')  return 500;
-  return 350;
+  if (depth === 'quick') return 500;
+  return 800;
 }
 
 async function fetchCommentary(system, user) {
-  const depth     = profile ? profile.depth : 'balanced';
-  const maxTokens = getMaxTokens(depth);
-  const providers = [];
-  providers.push(() => callGroq(system, user, maxTokens));
-  providers.push(() => callPollinations(system, user));
+  const maxTokens = getMaxTokens(profile?.depth);
 
-  let lastErr = null;
-  for (const p of providers) {
-    try {
-      return cleanupLede(await p());
-    } catch (e) {
-      lastErr = e;
-      console.warn('LLM provider failed:', e.message);
-      await wait(500);
-    }
+  // 1. Primary Groq model — fast, high quality
+  try {
+    return parseCommentary(await callGroq(system, user, maxTokens, 0, GROQ_MODEL));
+  } catch (e) {
+    console.warn('[Signal] Primary Groq failed:', e.message);
   }
-  throw lastErr || new Error('all LLM providers failed');
+
+  // 2. Reserve Groq model — separate TPM bucket, handles rate-limit overflow
+  try {
+    return parseCommentary(await callGroq(system, user, maxTokens, 0, GROQ_MODEL_RESERVE));
+  } catch (e) {
+    console.warn('[Signal] Reserve Groq failed:', e.message);
+  }
+
+  // 3. Pollinations — last resort
+  try {
+    return parseCommentary(await callPollinations(system, user));
+  } catch (e) {
+    console.warn('[Signal] Pollinations failed:', e.message);
+    throw new Error('all providers failed');
+  }
 }
 
-async function callGroq(system, user, maxTokens = 350, attempt = 0) {
+function parseCommentary(raw) {
+  const text = raw.trim()
+    .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+  try {
+    const obj = JSON.parse(text);
+    if (obj && typeof obj.lede === 'string') return obj;
+  } catch (_) {}
+  // Fallback: treat entire response as plain lede text
+  return { lede: cleanupLede(raw) };
+}
+
+// Parse Groq's "x-ratelimit-reset-tokens" header value like "2m5.16s" or "16.82s" → ms
+function parseGroqResetMs(str) {
+  if (!str) return 0;
+  const m = str.match(/(?:(\d+)m)?(\d+\.?\d*)s/);
+  if (!m) return 0;
+  return ((parseInt(m[1] || '0') * 60) + parseFloat(m[2])) * 1000;
+}
+
+async function callGroq(system, user, maxTokens = 350, attempt = 0, model = GROQ_MODEL) {
   const res = await fetch('/api/groq', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({
-      model: GROQ_MODEL,
+      model,
       messages: [
         { role: 'system', content: system },
         { role: 'user',   content: user },
       ],
-      temperature: 0.88,
-      max_tokens:  maxTokens,
+      temperature:     0.88,
+      max_tokens:      maxTokens,
+      response_format: { type: 'json_object' },
     }),
   });
-  if ((res.status === 429 || res.status >= 500) && attempt < 2) {
-    await wait(1500 * Math.pow(2, attempt));
-    return callGroq(system, user, maxTokens, attempt + 1);
+
+  if (res.status === 429 || (res.status >= 500 && res.status < 600)) {
+    // Read the body first (can only consume once)
+    const bodyText = await res.text().catch(() => '');
+    let body = {};
+    try { body = JSON.parse(bodyText); } catch (_) {}
+
+    // Determine how long Groq says to wait — three sources in priority order:
+    // 1. Forwarded x-ratelimit-reset-tokens header (e.g. "2m5.16s")
+    // 2. "Please try again in X.Xs" in the error message body
+    // 3. Fallback exponential back-off
+    const headerMs  = parseGroqResetMs(res.headers.get('x-ratelimit-reset-tokens') || '');
+    const msgMatch  = (body?.error?.message || bodyText).match(/try again in (\d+\.?\d*)s/i);
+    const msgMs     = msgMatch ? parseFloat(msgMatch[1]) * 1000 : 0;
+    const backoffMs = 3000 * Math.pow(2, attempt);
+    const waitMs    = Math.max(headerMs || msgMs || backoffMs, backoffMs);
+
+    console.warn(`[Signal] Groq ${res.status} — ${body?.error?.message?.slice(0, 120) || bodyText.slice(0, 120)} — waiting ${Math.round(waitMs / 1000)}s (attempt ${attempt + 1})`);
+
+    // If Groq says we need to wait longer than 25s, don't retry — fall through to Pollinations
+    if (waitMs > 25000) {
+      throw new Error(`groq: rate limited, reset in ${Math.round(waitMs / 1000)}s — falling back`);
+    }
+
+    if (attempt < 3) {
+      await wait(waitMs);
+      return callGroq(system, user, maxTokens, attempt + 1, model);
+    }
+    throw new Error(`groq: rate limited after ${attempt + 1} attempts`);
   }
+
   if (res.status === 401) throw new Error('groq: invalid API key — check Vercel env vars');
-  if (!res.ok) throw new Error('groq failed: ' + res.status);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    console.error(`[Signal] Groq ${res.status} — ${body.slice(0, 200)}`);
+    throw new Error(`groq failed: ${res.status}`);
+  }
+
   const data    = await res.json();
   const content = data?.choices?.[0]?.message?.content;
-  if (!content) throw new Error('groq: no content');
+  if (!content) {
+    console.error('[Signal] Groq: no content in response —', JSON.stringify(data).slice(0, 200));
+    throw new Error('groq: no content');
+  }
   return content;
 }
 
 async function callPollinations(system, user, attempt = 0) {
-  const res = await fetch(POLLINATIONS_URL, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user',   content: user },
-      ],
-      model:   POLLINATIONS_MODEL,
-      private: true,
-      seed:    Math.floor(Math.random() * 1e9),
-    }),
-  });
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 25000);
+  let res;
+  try {
+    res = await fetch(POLLINATIONS_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal:  controller.signal,
+      body:    JSON.stringify({
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user',   content: user },
+        ],
+        model:   POLLINATIONS_MODEL,
+        private: true,
+        seed:    Math.floor(Math.random() * 1e9),
+      }),
+    });
+  } catch (e) {
+    clearTimeout(tid);
+    const msg = e.name === 'AbortError' ? 'timed out after 25s' : e.message;
+    console.warn(`[Signal] Pollinations fetch error: ${msg}`);
+    throw new Error('pollinations: ' + msg);
+  }
+  clearTimeout(tid);
+
   if ((res.status === 429 || res.status >= 500) && attempt < 2) {
-    await wait(1500 * Math.pow(2, attempt));
+    await wait(2000 * Math.pow(2, attempt));
     return callPollinations(system, user, attempt + 1);
   }
-  if (!res.ok) throw new Error('pollinations failed: ' + res.status);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    console.warn(`[Signal] Pollinations ${res.status} — ${body.slice(0, 150)}`);
+    throw new Error('pollinations failed: ' + res.status);
+  }
   const data    = await res.json();
   const content = data?.choices?.[0]?.message?.content;
-  if (!content) throw new Error('pollinations: no content');
+  if (!content) {
+    console.warn('[Signal] Pollinations: no content —', JSON.stringify(data).slice(0, 150));
+    throw new Error('pollinations: no content');
+  }
   return content;
 }
 
@@ -4664,11 +5287,19 @@ let speaking      = false;
 // ── Helpers ───────────────────────────────────────────────────
 
 function buildSegments() {
+  // In Detail View, only narrate the section currently displayed
+  const targetKey = (briefingSubView === 'detail' && currentDetailKey) ? currentDetailKey : null;
+  const sections  = targetKey
+    ? (lastSectionsWithItems.filter(s => s.key === targetKey))
+    : getSections();
+
   const segs = [];
-  for (const s of getSections()) {
+  for (const s of sections) {
     const item = briefingData[s.key];
     if (!item || !item.lede) continue;
-    segs.push({ text: item.lede, highlightKey: s.key });
+    const d    = item.lede;
+    const text = typeof d === 'string' ? d : (d.lede || '');
+    if (text) segs.push({ text, highlightKey: s.key });
   }
   return segs;
 }
@@ -4850,7 +5481,6 @@ function renderProfile() {
   const depthLabel  = DEPTH_OPTIONS.find(d => d.key === profile.depth)?.label || profile.depth;
   const toneLabel   = TONE_OPTIONS.find(t => t.key === profile.tone)?.label   || profile.tone;
 
-  const savedStories = getSaved();
 
   container.innerHTML = `
     <div style="padding-top:8px">
@@ -4900,23 +5530,25 @@ function renderProfile() {
         </div>
       </div>
 
-      <!-- ── Saved Stories ── -->
+      <!-- ── Saved Briefs ── -->
       <div class="profile-section">
-        <div class="profile-section-label">Saved</div>
+        <div class="profile-section-label">Saved Briefs</div>
         <div id="prof-saved-list">
-          ${savedStories.length === 0
-            ? `<p style="text-align:center;color:var(--muted);font-style:italic;font-size:14px;padding:20px 0">Stories you save will appear here. Tap the bookmark on any headline.</p>`
-            : savedStories.map(s => `
-              <div class="saved-story-card" data-link="${escapeHtml(s.link)}">
+          ${(() => {
+            const briefs = getSavedBriefs();
+            if (!briefs.length) return `<p style="text-align:center;color:var(--muted);font-style:italic;font-size:14px;padding:20px 0">Briefs you bookmark will appear here. Tap the bookmark icon in any section.</p>`;
+            return briefs.map(b => `
+              <div class="saved-story-card" data-key="${escapeHtml(b.key)}">
                 <div class="saved-story-body">
-                  <a class="saved-story-title" href="${escapeHtml(s.link)}" target="_blank" rel="noopener">${escapeHtml(s.title)}</a>
+                  <div class="saved-story-title" style="cursor:default">${escapeHtml(b.label)}</div>
                   <div class="saved-story-meta">
-                    ${s.source ? `<span class="saved-story-src">${escapeHtml(s.source)}</span>` : ''}
-                    <span class="saved-story-section">${escapeHtml(s.sectionName)}</span>
+                    <span class="saved-story-src">${escapeHtml(b.date)}</span>
                   </div>
+                  ${b.lede ? `<p style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5">${escapeHtml(b.lede.slice(0, 120))}…</p>` : ''}
                 </div>
-                <button class="saved-story-remove" aria-label="Remove saved story" data-link="${escapeHtml(s.link)}">×</button>
-              </div>`).join('')}
+                <button class="saved-story-remove" aria-label="Remove saved brief" data-key="${escapeHtml(b.key)}">×</button>
+              </div>`).join('');
+          })()}
         </div>
       </div>
 
@@ -5008,13 +5640,13 @@ function renderProfile() {
     renderProfile();
   });
 
-  // Wire: saved story remove buttons
+  // Wire: saved brief remove buttons
   container.querySelectorAll('.saved-story-remove').forEach(btn => {
     btn.addEventListener('click', () => {
-      const link = btn.dataset.link;
-      let saved  = getSaved().filter(s => s.link !== link);
-      localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
-      renderProfile(); // re-render to update list
+      const key  = btn.dataset.key;
+      let briefs = getSavedBriefs().filter(b => b.key !== key);
+      localStorage.setItem(BRIEFS_KEY, JSON.stringify(briefs));
+      renderProfile();
     });
   });
 
