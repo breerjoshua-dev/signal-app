@@ -4709,14 +4709,14 @@ async function onGenerate() {
         briefingData[s.key] = { lede: null, items: s.items, label: s.label };
         injectLedeError(s.key);
       }
-      if (i < generateSections.length - 1) await wait(3000);
+      if (i < generateSections.length - 1) await wait(1000);
     }
 
-    // Auto-retry any failed sections once
+    // Auto-retry any failed sections once (with a longer gap to let rate limits clear)
     const failed = generateSections.filter(s => briefingData[s.key]?.lede === null);
     if (failed.length > 0) {
       setLoadingLabel('Retrying failed sections…');
-      await wait(3000);
+      await wait(5000);
       for (const s of failed) {
         try {
           const system = buildSystemPrompt(profile.tone, profile.name, appMode, usedOpenings);
@@ -4728,7 +4728,7 @@ async function onGenerate() {
         } catch (err) {
           console.warn(`[Signal] ✗ ${s.key} retry also failed:`, err.message);
         }
-        await wait(3000);
+        await wait(1000);
       }
     }
 
@@ -5828,16 +5828,21 @@ async function callGroq(system, user, maxTokens = 350, attempt = 0, model = GROQ
     let body = {};
     try { body = JSON.parse(bodyText); } catch (_) {}
 
-    // Priority: forwarded header → "try again in Xs" in body → 60s fallback
+    // Priority: forwarded header → "try again in Xs" in body → 5s fallback
     const headerMs = parseGroqResetMs(res.headers.get('x-ratelimit-reset-tokens') || '');
     const msgMatch = (body?.error?.message || bodyText).match(/try again in (\d+\.?\d*)s/i);
-    const msgMs    = msgMatch ? (parseFloat(msgMatch[1]) + 2) * 1000 : 0;
-    const waitMs   = Math.min(headerMs || msgMs || 60000, 90000); // cap at 90s per attempt
+    const msgMs    = msgMatch ? (parseFloat(msgMatch[1]) + 1) * 1000 : 0;
+    const rawWait  = headerMs || msgMs || 5000;
 
-    console.warn(`[Signal] Groq ${res.status} — waiting ${Math.round(waitMs / 1000)}s (attempt ${attempt + 1}) — ${(body?.error?.message || bodyText).slice(0, 100)}`);
+    console.warn(`[Signal] Groq ${res.status} — reset in ${Math.round(rawWait / 1000)}s (attempt ${attempt + 1}) — ${(body?.error?.message || bodyText).slice(0, 80)}`);
 
-    if (attempt < 5) {
-      await wait(waitMs);
+    // If Groq needs >15s, hand off to reserve model / Pollinations now rather than blocking
+    if (rawWait > 15000) {
+      throw new Error(`groq: rate limited ${Math.round(rawWait / 1000)}s reset — falling back`);
+    }
+
+    if (attempt < 2) {
+      await wait(rawWait);
       return callGroq(system, user, maxTokens, attempt + 1, model);
     }
     throw new Error(`groq: rate limited after ${attempt + 1} attempts`);
