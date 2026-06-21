@@ -1928,6 +1928,17 @@ ol.headlines li {
   transition: border-color var(--transition), color var(--transition);
 }
 .audio-btn:hover { border-color: var(--accent-border); color: var(--ink); }
+.audio-btn-60s {
+  color: var(--accent);
+  border-color: var(--accent-border);
+  background: var(--accent-dim);
+}
+.audio-btn-60s:hover { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.audio-btn-60s.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
 .audio-label {
   font-size: 10px;
   letter-spacing: 0.18em;
@@ -3031,6 +3042,7 @@ html.theme-light .fp-card-img { background: var(--surface-2); }
           <button id="play-btn"  class="audio-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><polygon points="2,1 13,7 2,13"/></svg> Play</button>
           <button id="pause-btn" class="audio-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="1" width="4" height="12" rx="1"/><rect x="8" y="1" width="4" height="12" rx="1"/></svg> Pause</button>
           <button id="stop-btn"  class="audio-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="2" width="10" height="10" rx="1.5"/></svg> Stop</button>
+          <button id="brief60s-btn" class="audio-btn audio-btn-60s"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 60s Brief</button>
           <span class="audio-label" style="margin-left:auto">Voice</span>
           <span id="current-voice-name" style="font-size:12px;color:var(--ink-soft);font-weight:500">Signal Classic</span>
         </div>
@@ -4553,6 +4565,7 @@ function showApp() {
     $('play-btn').addEventListener('click',  onPlay);
     $('pause-btn').addEventListener('click', onPause);
     $('stop-btn').addEventListener('click',  onStop);
+    $('brief60s-btn').addEventListener('click', toggle60sBrief);
   }
 
   // Apply saved voice name display
@@ -4724,7 +4737,6 @@ async function onGenerate() {
 
     if (!isFreeTier()) $('audio-wrap').classList.add('visible');
     updateGreetingReadTime();
-    render60sBar(sectionsWithItems);
 
   } catch (e) {
     console.error(e);
@@ -4909,7 +4921,6 @@ function renderFrontPage(sections) {
       <div id="fp-greeting"></div>
       <div id="cache-bar" style="display:none"></div>
       <div class="fp-progress" id="fp-progress"></div>
-      <div id="fp-brief-bar" style="display:none"></div>
       <div id="fp-glance"></div>
       <div class="fp-grid" id="fp-grid"></div>
     </div>
@@ -5453,7 +5464,6 @@ async function autoLoadCachedBriefing() {
 
     if (!isFreeTier()) $('audio-wrap').classList.add('visible');
     updateGreetingReadTime();
-    render60sBar(sectionsWithItems);
 
     // Show cache indicator
     const bar = $('cache-bar');
@@ -5477,42 +5487,19 @@ async function autoLoadCachedBriefing() {
 /* ── 60s Brief ───────────────────────────────────────────────── */
 let brief60sActive = false;
 
-function render60sBar(sections) {
-  const bar = $('fp-brief-bar');
-  if (!bar) return;
-  const hasSummaries = sections.some(s => briefingData[s.key]?.lede?.highlight);
-  if (!hasSummaries) return;
-
-  const isPro = !isFreeTier();
-  bar.style.display = 'flex';
-  bar.innerHTML = `
-    <button class="brief60s-toggle" id="brief60s-btn">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      60s Brief
-    </button>
-    ${isPro ? `<button class="brief60s-play" id="brief60s-play">
-      <svg width="11" height="11" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><polygon points="2,1 13,7 2,13"/></svg>
-      Play
-    </button>` : ''}`;
-
-  $('brief60s-btn').addEventListener('click', () => toggle60sBrief());
-  if (isPro) $('brief60s-play').addEventListener('click', () => play60sBrief());
-}
 
 function toggle60sBrief() {
   brief60sActive = !brief60sActive;
   const fpView = $('fp-view');
   const btn    = $('brief60s-btn');
-  const play   = $('brief60s-play');
-  if (!fpView || !btn) return;
-  fpView.classList.toggle('brief60s-active', brief60sActive);
-  btn.classList.toggle('active', brief60sActive);
-  if (play) play.classList.toggle('visible', brief60sActive);
+  if (fpView) fpView.classList.toggle('brief60s-active', brief60sActive);
+  if (btn)    btn.classList.toggle('active', brief60sActive);
 }
 
 async function play60sBrief() {
   if (!lastSectionsWithItems.length) return;
   onStop();
+  stopRequested = false; // onStop() sets this true; reset before playing
   const segments = lastSectionsWithItems
     .filter(s => briefingData[s.key]?.lede?.highlight)
     .map(s => ({ key: s.key, text: briefingData[s.key].lede.highlight }));
@@ -6032,7 +6019,11 @@ async function onPlay() {
   if (currentAudio && currentAudio.paused && !stopRequested) { try { await currentAudio.play(); } catch(_){} return; }
   if (!IS_HOSTED && 'speechSynthesis' in window && speechSynthesis.paused) { speechSynthesis.resume(); return; }
   onStop();
-  await playElevenLabsBriefing();
+  if (brief60sActive) {
+    await play60sBrief();
+  } else {
+    await playElevenLabsBriefing();
+  }
 }
 
 function onPause() {
