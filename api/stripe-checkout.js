@@ -45,7 +45,7 @@ export default async function handler(req, res) {
   try {
     const stripe = new Stripe(stripeKey);
 
-    console.log('Creating Stripe session — priceId:', resolvedPriceId, 'userId:', userId, 'email:', email);
+    console.log('Creating Stripe session — priceId:', resolvedPriceId, 'userId:', userId);
 
     const sessionParams = {
       mode: 'subscription',

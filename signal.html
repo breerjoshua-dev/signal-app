@@ -1019,6 +1019,151 @@ button { font-family: var(--sans); }
 .section-share-btn:hover { color: var(--ink-soft); }
 .section-share-btn.copied { color: var(--success); }
 
+/* ── Onboarding intro loading screen ────────────────────────── */
+#signal-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  opacity: 1;
+  transition: opacity 0.7s ease;
+}
+#signal-intro.fade-out { opacity: 0; pointer-events: none; }
+.intro-wordmark {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.015em;
+}
+.intro-wordmark .dot { color: var(--accent); }
+.intro-tagline {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.intro-dots { display: flex; gap: 8px; }
+.intro-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.3;
+  animation: introPulse 1.3s infinite ease-in-out;
+}
+.intro-dots span:nth-child(2) { animation-delay: 0.22s; }
+.intro-dots span:nth-child(3) { animation-delay: 0.44s; }
+@keyframes introPulse {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+  40%           { opacity: 1;    transform: scale(1);   }
+}
+
+/* ── 60s Brief bar ───────────────────────────────────────────── */
+#fp-brief-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.brief60s-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  user-select: none;
+}
+.brief60s-toggle:hover { border-color: var(--accent-border); color: var(--ink); }
+.brief60s-toggle.active {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+.brief60s-play {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 999px;
+  transition: color 0.15s, opacity 0.2s;
+  opacity: 0;
+  pointer-events: none;
+}
+.brief60s-play.visible { opacity: 1; pointer-events: auto; }
+.brief60s-play:hover { color: var(--ink); }
+
+/* 60s active mode — collapse cards to highlight only */
+#fp-view.brief60s-active .fp-card-preview { display: none; }
+#fp-view.brief60s-active .fp-card-meta    { display: none; }
+#fp-view.brief60s-active .fp-card-kicker  { display: none; }
+.fp-card-summary {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  display: none;
+}
+#fp-view.brief60s-active .fp-card-summary { display: block; }
+
+/* ── Section retry link ──────────────────────────────────────── */
+.section-retry-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  font-family: var(--sans);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Briefing cache bar ──────────────────────────────────────── */
+#cache-bar {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 12px;
+}
+#cache-bar button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  font-family: var(--sans);
+  cursor: pointer;
+  padding: 0;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* ── Front page greeting header ──────────────────────────────── */
 #fp-greeting {
   padding-bottom: 40px;
@@ -2937,15 +3082,12 @@ html.theme-light .fp-card-img { background: var(--surface-2); }
 // ── Supabase client ───────────────────────────────────────────
 const supabaseClient = window.supabase.createClient(
   'https://nvipamvkqkrgakvzvxwp.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52aXBhbXZrcWtyZ2Frdnp2eHdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NzE5MjQsImV4cCI6MjA5NjI0NzkyNH0.OkzXNmaCDOPiFWP7uwqbGLmUvrQBlqyPMukp0REkbxE'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52aXBhbXZrcWtyZ2Frdnp2eHdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NzE5MjQsImV4cCI6MjA5NjI0NzkyNH0.OkzXNmaCDOPiFWP7uwqbGLmUvrQBlqyPMukp0REkbxE',
+  { auth: { persistSession: true, autoRefreshToken: true } }
 );
 
 // ── Storage keys ──────────────────────────────────────────────
 const PROFILE_KEY = 'signal:profile';
-
-// ── API keys — fill in your keys here ─────────────────────────
-const GROQ_KEY   = '';
-const PEXELS_KEY = '';
 
 // ── RSS / LLM config ──────────────────────────────────────────
 const RSS_PROXY          = 'https://api.rss2json.com/v1/api.json?rss_url=';
@@ -2954,7 +3096,7 @@ const HEADLINES_FOR_PROMPT   = 8;
 const POLLINATIONS_URL    = 'https://text.pollinations.ai/openai';
 const POLLINATIONS_MODEL  = 'openai';
 const GROQ_MODEL          = 'llama-3.3-70b-versatile';
-const GROQ_MODEL_RESERVE  = 'llama-3.1-8b-instant';   // separate TPM bucket — used when primary is rate-limited
+const GROQ_MODEL_RESERVE  = 'llama-3.3-70b-versatile'; // same quality model; separate retry pass
 
 // ── Environment & voice ───────────────────────────────────────
 const IS_HOSTED = window.location.protocol === 'https:';
@@ -4220,7 +4362,26 @@ function dismissAuthAndShowApp() {
     onboarding.classList.add('fade-out');
     setTimeout(() => onboarding.classList.add('hidden'), 400);
   }
-  showApp();
+
+  // Show intro screen on first entry after completing onboarding
+  const firstEntry = !localStorage.getItem('signal:intro-seen');
+  if (firstEntry) {
+    localStorage.setItem('signal:intro-seen', '1');
+    const intro = document.createElement('div');
+    intro.id = 'signal-intro';
+    intro.innerHTML = `
+      <div class="intro-wordmark">Signal<span class="dot">.</span></div>
+      <div class="intro-tagline">Curating your Signal.</div>
+      <div class="intro-dots"><span></span><span></span><span></span></div>`;
+    document.body.appendChild(intro);
+    showApp();
+    setTimeout(() => {
+      intro.classList.add('fade-out');
+      setTimeout(() => intro.remove(), 700);
+    }, 3500);
+  } else {
+    showApp();
+  }
 }
 
 async function signOut() {
@@ -4385,15 +4546,24 @@ function showApp() {
   $('generate-btn').addEventListener('click', onGenerate);
 
 
-  // Audio controls
-  $('play-btn').addEventListener('click',  onPlay);
-  $('pause-btn').addEventListener('click', onPause);
-  $('stop-btn').addEventListener('click',  onStop);
+  // Audio controls — hidden entirely for free tier
+  if (isFreeTier()) {
+    $('audio-wrap').style.display = 'none';
+  } else {
+    $('play-btn').addEventListener('click',  onPlay);
+    $('pause-btn').addEventListener('click', onPause);
+    $('stop-btn').addEventListener('click',  onStop);
+  }
 
   // Apply saved voice name display
   updateVoiceNameDisplay();
 
   renderExplore();
+
+  // Auto-load today's cached briefing if available (non-blocking, best-effort)
+  if (profile?.supabaseId) {
+    autoLoadCachedBriefing().catch(() => {});
+  }
 }
 
 const EDITION_LABEL = { morning: 'Morning', midday: 'Midday', evening: 'Evening' };
@@ -4505,11 +4675,13 @@ async function onGenerate() {
     }
 
     // 3. Write AI commentary section by section — track openers to prevent repetition
+    // Free tier: only generate AI for first 2 sections (rest show locked cards)
+    const generateSections = isFreeTier() ? sectionsWithItems.slice(0, 2) : sectionsWithItems;
     const usedOpenings = [];
-    for (let i = 0; i < sectionsWithItems.length; i++) {
-      const s = sectionsWithItems[i];
+    for (let i = 0; i < generateSections.length; i++) {
+      const s = generateSections[i];
       setLoadingLabel(`Writing ${s.label.toLowerCase()}`);
-      console.log(`[Signal] Generating section ${i + 1}/${sectionsWithItems.length}: ${s.key}`);
+      console.log(`[Signal] Generating section ${i + 1}/${generateSections.length}: ${s.key}`);
       try {
         const system = buildSystemPrompt(profile.tone, profile.name, appMode, usedOpenings);
         const user   = buildUserPrompt(s.label, s.items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
@@ -4517,19 +4689,42 @@ async function onGenerate() {
         briefingData[s.key] = { lede: data, items: s.items, label: s.label };
         injectLede(s.key, data);
         console.log(`[Signal] ✓ ${s.key} done`);
-        // Record opener for anti-repetition in next sections
         const ledeText = typeof data === 'string' ? data : (data.lede || '');
         if (ledeText) usedOpenings.push(ledeText.trim().split(/\s+/).slice(0, 6).join(' '));
       } catch (err) {
-        console.warn(`[Signal] ✗ ${s.key} failed (rate limited or error):`, err.message);
+        console.warn(`[Signal] ✗ ${s.key} failed:`, err.message);
         briefingData[s.key] = { lede: null, items: s.items, label: s.label };
         injectLedeError(s.key);
       }
-      if (i < sectionsWithItems.length - 1) await wait(800);
+      if (i < generateSections.length - 1) await wait(3000);
     }
 
-    $('audio-wrap').classList.add('visible');
+    // Auto-retry any failed sections once
+    const failed = generateSections.filter(s => briefingData[s.key]?.lede === null);
+    if (failed.length > 0) {
+      setLoadingLabel('Retrying failed sections…');
+      await wait(3000);
+      for (const s of failed) {
+        try {
+          const system = buildSystemPrompt(profile.tone, profile.name, appMode, usedOpenings);
+          const user   = buildUserPrompt(s.label, s.items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
+          const data   = await fetchCommentary(system, user);
+          briefingData[s.key] = { lede: data, items: s.items, label: s.label };
+          injectLede(s.key, data);
+          console.log(`[Signal] ✓ ${s.key} retry succeeded`);
+        } catch (err) {
+          console.warn(`[Signal] ✗ ${s.key} retry also failed:`, err.message);
+        }
+        await wait(3000);
+      }
+    }
+
+    // Save to Supabase cache (non-blocking)
+    saveBriefingCache(sectionsWithItems).catch(() => {});
+
+    if (!isFreeTier()) $('audio-wrap').classList.add('visible');
     updateGreetingReadTime();
+    render60sBar(sectionsWithItems);
 
   } catch (e) {
     console.error(e);
@@ -4712,7 +4907,9 @@ function renderFrontPage(sections) {
   container.innerHTML = `
     <div id="fp-view">
       <div id="fp-greeting"></div>
+      <div id="cache-bar" style="display:none"></div>
       <div class="fp-progress" id="fp-progress"></div>
+      <div id="fp-brief-bar" style="display:none"></div>
       <div id="fp-glance"></div>
       <div class="fp-grid" id="fp-grid"></div>
     </div>
@@ -4809,6 +5006,7 @@ function fpCardInnerHTML(s, isRead) {
       <div class="fp-card-label">${escapeHtml(s.label)}</div>
       ${preview ? `<div class="fp-card-preview">${escapeHtml(preview)}</div>` : '<div class="fp-card-preview fp-loading">Writing…</div>'}
       ${mins    ? `<div class="fp-card-meta">~${mins} min read</div>` : '<div class="fp-card-meta"></div>'}
+      ${highlight ? `<div class="fp-card-summary">${escapeHtml(highlight)}</div>` : ''}
     </div>`;
 }
 
@@ -5143,10 +5341,44 @@ function injectLedeError(key) {
     const preview = card.querySelector('.fp-card-preview');
     if (preview) {
       preview.classList.remove('fp-loading');
-      preview.textContent = "Signal couldn't reach this section — try regenerating.";
+      preview.innerHTML = `Signal couldn't reach this section.<button class="section-retry-btn" data-key="${escapeHtml(key)}">Retry</button>`;
+      preview.querySelector('.section-retry-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        regenerateSection(key);
+      });
     }
   }
   updateGlanceRow(key, "Couldn't load — try regenerating.");
+}
+
+async function regenerateSection(key) {
+  const s = lastSectionsWithItems.find(s => s.key === key);
+  if (!s) return;
+
+  // Reset card to loading state
+  const card = document.querySelector(`.fp-card[data-key="${escapeHtml(key)}"]`);
+  if (card) {
+    card.classList.remove('fp-card-error');
+    const preview = card.querySelector('.fp-card-preview');
+    if (preview) { preview.classList.add('fp-loading'); preview.textContent = 'Writing…'; }
+  }
+  updateGlanceRow(key, '<span class="glance-loading">Writing…</span>');
+
+  try {
+    const existingOpeners = Object.values(briefingData)
+      .filter(d => d?.lede)
+      .map(d => { const t = typeof d.lede === 'string' ? d.lede : (d.lede?.lede || ''); return t.trim().split(/\s+/).slice(0, 6).join(' '); })
+      .filter(Boolean);
+    const system = buildSystemPrompt(profile.tone, profile.name, appMode, existingOpeners);
+    const user   = buildUserPrompt(s.label, s.items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
+    const data   = await fetchCommentary(system, user);
+    briefingData[s.key] = { lede: data, items: s.items, label: s.label };
+    injectLede(s.key, data);
+    updateGreetingReadTime();
+  } catch (err) {
+    console.warn(`[Signal] regenerateSection failed for ${key}:`, err.message);
+    injectLedeError(key);
+  }
 }
 
 /* ── Error UI ────────────────────────────────────────────────── */
@@ -5159,6 +5391,156 @@ function hideError() {
   const el = $('errbox');
   el.classList.remove('visible');
   el.textContent = '';
+}
+
+/* ── Briefing cache (Supabase) ───────────────────────────────── */
+async function loadCachedBriefing() {
+  if (!profile?.supabaseId) return null;
+  try {
+    const { data, error } = await supabaseClient
+      .from('briefings')
+      .select('content')
+      .eq('user_id', profile.supabaseId)
+      .eq('date', todayStr())
+      .single();
+    if (error || !data) return null;
+    return data.content;
+  } catch (e) { return null; }
+}
+
+async function saveBriefingCache(sectionsWithItems) {
+  if (!profile?.supabaseId || !Object.keys(briefingData).length) return;
+  const content = {
+    briefingData,
+    sectionMeta: sectionsWithItems.map(s => ({ key: s.key, label: s.label })),
+  };
+  try {
+    await supabaseClient.from('briefings').upsert(
+      { user_id: profile.supabaseId, date: todayStr(), content },
+      { onConflict: 'user_id,date' }
+    );
+  } catch (e) { console.warn('[Signal] Cache save failed:', e.message); }
+}
+
+async function autoLoadCachedBriefing() {
+  const cached = await loadCachedBriefing();
+  if (!cached?.briefingData || !cached?.sectionMeta) return;
+
+  setLoadingLabel('Loading your briefing');
+  $('state-loading').classList.add('visible');
+  $('generate-btn').disabled = true;
+  $('generate-btn').textContent = 'Loading…';
+
+  try {
+    // Fetch fresh RSS in parallel with section meta from cache
+    const sections = (profile?.interests || [])
+      .filter(k => INTEREST_MAP[k])
+      .map(k => ({ key: k, label: INTEREST_MAP[k].label, feeds: INTEREST_MAP[k].feeds, context: INTEREST_MAP[k].context }));
+
+    const sectionsWithItems = await Promise.all(sections.map(async s => {
+      try { const items = await fetchSection(s); return { ...s, items }; }
+      catch (_) { return { ...s, items: [] }; }
+    }));
+
+    lastSectionsWithItems = sectionsWithItems;
+    Object.assign(briefingData, cached.briefingData);
+    renderFrontPage(sectionsWithItems);
+
+    // Inject all cached ledeObjects
+    for (const s of sectionsWithItems) {
+      if (briefingData[s.key]?.lede) injectLede(s.key, briefingData[s.key].lede);
+    }
+
+    if (!isFreeTier()) $('audio-wrap').classList.add('visible');
+    updateGreetingReadTime();
+    render60sBar(sectionsWithItems);
+
+    // Show cache indicator
+    const bar = $('cache-bar');
+    if (bar) {
+      bar.style.display = 'block';
+      bar.innerHTML = `Generated earlier today · <button id="cache-refresh-btn">Refresh</button>`;
+      $('cache-refresh-btn').addEventListener('click', async () => {
+        bar.style.display = 'none';
+        await onGenerate();
+      });
+    }
+  } catch (e) {
+    console.warn('[Signal] Failed to render cached briefing:', e.message);
+  } finally {
+    $('state-loading').classList.remove('visible');
+    $('generate-btn').disabled = false;
+    $('generate-btn').textContent = 'Regenerate';
+  }
+}
+
+/* ── 60s Brief ───────────────────────────────────────────────── */
+let brief60sActive = false;
+
+function render60sBar(sections) {
+  const bar = $('fp-brief-bar');
+  if (!bar) return;
+  const hasSummaries = sections.some(s => briefingData[s.key]?.lede?.highlight);
+  if (!hasSummaries) return;
+
+  const isPro = !isFreeTier();
+  bar.style.display = 'flex';
+  bar.innerHTML = `
+    <button class="brief60s-toggle" id="brief60s-btn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      60s Brief
+    </button>
+    ${isPro ? `<button class="brief60s-play" id="brief60s-play">
+      <svg width="11" height="11" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><polygon points="2,1 13,7 2,13"/></svg>
+      Play
+    </button>` : ''}`;
+
+  $('brief60s-btn').addEventListener('click', () => toggle60sBrief());
+  if (isPro) $('brief60s-play').addEventListener('click', () => play60sBrief());
+}
+
+function toggle60sBrief() {
+  brief60sActive = !brief60sActive;
+  const fpView = $('fp-view');
+  const btn    = $('brief60s-btn');
+  const play   = $('brief60s-play');
+  if (!fpView || !btn) return;
+  fpView.classList.toggle('brief60s-active', brief60sActive);
+  btn.classList.toggle('active', brief60sActive);
+  if (play) play.classList.toggle('visible', brief60sActive);
+}
+
+async function play60sBrief() {
+  if (!lastSectionsWithItems.length) return;
+  onStop();
+  const segments = lastSectionsWithItems
+    .filter(s => briefingData[s.key]?.lede?.highlight)
+    .map(s => ({ key: s.key, text: briefingData[s.key].lede.highlight }));
+  if (!segments.length) return;
+
+  const voiceId = getSavedVoiceId();
+  for (const seg of segments) {
+    if (stopRequested) break;
+    try {
+      const res = await fetch('/api/elevenlabs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voice_id: voiceId, text: seg.text }),
+      });
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      if (!blob.size) continue;
+      const url = URL.createObjectURL(blob);
+      await new Promise(resolve => {
+        currentAudio = new Audio(url);
+        currentAudio.onended = resolve;
+        currentAudio.onerror = resolve;
+        currentAudio.play().catch(resolve);
+      });
+      URL.revokeObjectURL(url);
+      await wait(300);
+    } catch (_) {}
+  }
 }
 
 /* ============================================================
@@ -5210,6 +5592,23 @@ function renderExplore() {
   container.querySelectorAll('.explore-all-item:not(.in-signal)').forEach(item => {
     item.addEventListener('click', () => loadExploreTopic(item.dataset.key));
   });
+
+  // Free tier: lock the user's own topics beyond index 1 in the "In Signal" items
+  if (isFreeTier() && profile?.interests?.length > 2) {
+    const lockedKeys = new Set(profile.interests.slice(2));
+    container.querySelectorAll('.explore-all-item.in-signal').forEach(item => {
+      if (lockedKeys.has(item.dataset.key)) {
+        item.style.opacity = '0.45';
+        item.style.position = 'relative';
+        item.style.cursor = 'pointer';
+        const lock = document.createElement('span');
+        lock.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-left:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+        lock.style.pointerEvents = 'none';
+        item.appendChild(lock);
+        item.addEventListener('click', () => showUpgradeModal());
+      }
+    });
+  }
 }
 
 function buildExploreCardHTML(key) {
@@ -5394,12 +5793,21 @@ async function fetchCommentary(system, user) {
 }
 
 function parseCommentary(raw) {
-  const text = raw.trim()
+  // Strip markdown fences first
+  let text = raw.trim()
     .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+
+  // Extract first { … last } to discard any prose before/after the JSON object
+  const first = text.indexOf('{');
+  const last  = text.lastIndexOf('}');
+  if (first !== -1 && last > first) text = text.slice(first, last + 1);
+
   try {
     const obj = JSON.parse(text);
     if (obj && typeof obj.lede === 'string') return obj;
+    if (obj && typeof obj.lede === 'object') return obj; // nested lede
   } catch (_) {}
+
   // Fallback: treat entire response as plain lede text
   return { lede: cleanupLede(raw) };
 }
@@ -5429,29 +5837,19 @@ async function callGroq(system, user, maxTokens = 350, attempt = 0, model = GROQ
   });
 
   if (res.status === 429 || (res.status >= 500 && res.status < 600)) {
-    // Read the body first (can only consume once)
     const bodyText = await res.text().catch(() => '');
     let body = {};
     try { body = JSON.parse(bodyText); } catch (_) {}
 
-    // Determine how long Groq says to wait — three sources in priority order:
-    // 1. Forwarded x-ratelimit-reset-tokens header (e.g. "2m5.16s")
-    // 2. "Please try again in X.Xs" in the error message body
-    // 3. Fallback exponential back-off
-    const headerMs  = parseGroqResetMs(res.headers.get('x-ratelimit-reset-tokens') || '');
-    const msgMatch  = (body?.error?.message || bodyText).match(/try again in (\d+\.?\d*)s/i);
-    const msgMs     = msgMatch ? parseFloat(msgMatch[1]) * 1000 : 0;
-    const backoffMs = 3000 * Math.pow(2, attempt);
-    const waitMs    = Math.max(headerMs || msgMs || backoffMs, backoffMs);
+    // Priority: forwarded header → "try again in Xs" in body → 60s fallback
+    const headerMs = parseGroqResetMs(res.headers.get('x-ratelimit-reset-tokens') || '');
+    const msgMatch = (body?.error?.message || bodyText).match(/try again in (\d+\.?\d*)s/i);
+    const msgMs    = msgMatch ? (parseFloat(msgMatch[1]) + 2) * 1000 : 0;
+    const waitMs   = Math.min(headerMs || msgMs || 60000, 90000); // cap at 90s per attempt
 
-    console.warn(`[Signal] Groq ${res.status} — ${body?.error?.message?.slice(0, 120) || bodyText.slice(0, 120)} — waiting ${Math.round(waitMs / 1000)}s (attempt ${attempt + 1})`);
+    console.warn(`[Signal] Groq ${res.status} — waiting ${Math.round(waitMs / 1000)}s (attempt ${attempt + 1}) — ${(body?.error?.message || bodyText).slice(0, 100)}`);
 
-    // If Groq says we need to wait longer than 25s, don't retry — fall through to Pollinations
-    if (waitMs > 25000) {
-      throw new Error(`groq: rate limited, reset in ${Math.round(waitMs / 1000)}s — falling back`);
-    }
-
-    if (attempt < 3) {
+    if (attempt < 5) {
       await wait(waitMs);
       return callGroq(system, user, maxTokens, attempt + 1, model);
     }
