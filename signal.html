@@ -259,6 +259,9 @@ button { font-family: var(--sans); }
 @media (max-width: 767px)                         { .ob-step-inner-wide { max-width: 100%; } }
 @media (min-width: 768px) and (max-width: 1023px) { .ob-step-inner-wide { max-width: 680px; } }
 
+/* Interests step — top-align so tall grid content is fully scrollable */
+#ob-step-4 { justify-content: flex-start; }
+
 /* Step text */
 .ob-question {
   font-family: var(--serif);
@@ -3891,6 +3894,7 @@ function goToStep(target, animate = true) {
   }
 
   obStep = target;
+  toEl.scrollTop = 0; // always start at top of incoming step
   updateProgress();
   updateBackBtn();
   // Paywall appears after step 7 — triggered by that step's CTA directly
