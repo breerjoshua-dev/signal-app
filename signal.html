@@ -253,6 +253,11 @@ button { font-family: var(--sans); }
   width: 100%;
   max-width: 540px;
 }
+.ob-step-inner-wide {
+  max-width: 860px;
+}
+@media (max-width: 767px)                         { .ob-step-inner-wide { max-width: 100%; } }
+@media (min-width: 768px) and (max-width: 1023px) { .ob-step-inner-wide { max-width: 680px; } }
 
 /* Step text */
 .ob-question {
@@ -334,25 +339,66 @@ button { font-family: var(--sans); }
 /* Interests grid — exactly 3 columns = 7 clean rows for 21 items */
 .ob-interests-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
 }
+@media (max-width: 767px)                    { .ob-interests-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px) and (max-width: 1023px) { .ob-interests-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1024px)                  { .ob-interests-grid { grid-template-columns: repeat(5, 1fr); } }
+
 .ob-interest-card {
-  padding: 13px 14px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 10px 14px;
   background: var(--surface);
-  border: 1px solid var(--surface-3);
-  border-radius: var(--radius-sm);
+  border: 1.5px solid rgba(79, 142, 247, 0.22);
+  border-radius: 12px;
   cursor: pointer;
-  transition: border-color var(--transition), background var(--transition);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink-soft);
+  transition: all 0.18s ease;
+  text-align: center;
   user-select: none;
-  text-align: left;
+  min-height: 100px;
+}
+.ob-interest-card:hover:not(.selected):not(.locked) {
+  border-color: rgba(79, 142, 247, 0.5);
+  background: rgba(79, 142, 247, 0.05);
+}
+.ob-interest-card.selected {
+  background: rgba(79, 142, 247, 0.14);
+  border-color: #4f8ef7;
+}
+.ob-interest-card.locked {
+  opacity: 0.4;
+  cursor: default;
+}
+.ic-emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+.ic-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
   line-height: 1.35;
 }
-.ob-interest-card:hover    { border-color: var(--accent-border); background: var(--surface-2); }
-.ob-interest-card.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--ink); }
+.ob-interest-card.selected .ic-label { color: var(--ink); }
+.ic-check, .ic-lock {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  display: none;
+  line-height: 0;
+}
+.ic-check { color: #4f8ef7; }
+.ic-lock  { color: var(--muted); }
+.ob-interest-card.selected .ic-check { display: block; }
+.ob-interest-card.locked   .ic-lock  { display: block; }
 
 /* Selection preview strip */
 .ob-selection-preview {
@@ -376,22 +422,6 @@ button { font-family: var(--sans); }
   margin-bottom: 5px;
 }
 
-/* Interest cards — pill style */
-.ob-interest-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  text-align: center;
-  border-radius: 999px;
-  padding: 11px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ob-interest-card .ic-emoji { font-size: 15px; flex-shrink: 0; }
 
 /* Single-select options */
 .ob-options { display: flex; flex-direction: column; gap: 10px; }
@@ -2766,8 +2796,7 @@ html.theme-light .fp-card-img { background: var(--surface-2); }
   .ob-question            { font-size: var(--ob-question); }
   .step1-wordmark         { font-size: 72px; }
   .ob-identity-grid       { grid-template-columns: 1fr; }
-  .ob-interests-grid      { grid-template-columns: repeat(2, 1fr); }
-  .ob-interest-card       { font-size: 12px; padding: 11px 12px; }
+  .ob-interest-card       { min-height: 88px; padding: 14px 8px 10px; }
   .ob-back                { top: 14px; left: 14px; min-height: 44px; min-width: 44px; }
 
   /* Paywall */
@@ -3384,7 +3413,7 @@ const INTEREST_MAP = {
     context: 'fashion, design, luxury brands, fashion industry, trends, retail, streetwear, designer labels',
   },
   'personal-finance': {
-    label:   'Personal Finance & Wealth',
+    label:   'Personal Finance',
     desc:    'Investing, tax strategy, financial independence, and building personal wealth.',
     feeds:   [
       'https://news.google.com/rss/search?q=site:wsj.com+personal+finance&hl=en-US&gl=US&ceid=US:en',
@@ -3394,41 +3423,165 @@ const INTEREST_MAP = {
     ],
     context: 'personal finance, investing, retirement planning, tax strategy, wealth building, financial independence, budgeting',
   },
+  'fitness': {
+    label:   'Fitness & Performance',
+    desc:    'Training, sports science, nutrition, and what peak performance actually looks like.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=site:runnersworld.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:menshealth.com+fitness&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:outsideonline.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=fitness+performance+exercise+training+sports+science&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'fitness, physical performance, exercise science, athletics, strength training, endurance, sports nutrition',
+  },
+  'mental-health': {
+    label:   'Mental Health',
+    desc:    'Psychology, therapy, mental wellness, and the science of the mind.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=site:psychologytoday.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:theatlantic.com+mental+health&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:verywellmind.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=mental+health+anxiety+depression+therapy+psychiatry&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'mental health, psychology, therapy, anxiety, depression, psychiatry, mindfulness, emotional wellbeing',
+  },
+  'health-wellness': {
+    label:   'Health & Wellness',
+    desc:    'Longevity, nutrition, preventive medicine, and living better longer.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=site:healthline.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:wellandgood.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:health.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=health+wellness+longevity+nutrition+prevention&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'health, wellness, longevity, nutrition, preventive medicine, diet, lifestyle, biohacking',
+  },
+  'travel': {
+    label:   'Travel & Exploration',
+    desc:    'Destinations, aviation, hospitality trends, and how the world moves.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=site:cntraveler.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:afar.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:nytimes.com+travel&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=travel+aviation+tourism+airline+hotel+destination&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'travel, tourism, aviation, destinations, hospitality, airlines, hotels, exploration, digital nomads',
+  },
+  'defense': {
+    label:   'Defense & Security',
+    desc:    'Military affairs, national security, intelligence, and global conflict.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=site:defensenews.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:breakingdefense.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:politico.com+defense&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=defense+military+national+security+Pentagon+NATO&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'defense, military, national security, intelligence, Pentagon, NATO, conflict, weapons systems, cybersecurity',
+  },
+  'energy-infrastructure': {
+    label:   'Energy & Infrastructure',
+    desc:    'Power grids, infrastructure investment, energy security, and the backbone of modern economies.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=site:utilitydive.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:politico.com+energy+infrastructure&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:e&eel.co&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=energy+infrastructure+power+grid+electricity+utilities&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'energy infrastructure, power grids, utilities, electricity, infrastructure investment, energy security',
+  },
+  'books': {
+    label:   'Books & Literature',
+    desc:    'New releases, authors, publishing, and the ideas living inside books.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=site:nytimes.com+books&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:lithub.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:theguardian.com+books&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=books+literature+publishing+novel+author+reading&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'books, literature, publishing, authors, novels, reading culture, literary fiction, nonfiction, bestsellers',
+  },
+  'emerging-markets': {
+    label:   'Emerging Markets',
+    desc:    'BRICS, Southeast Asia, Africa, and the economies driving the next era of growth.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=site:bloomberg.com+emerging+markets&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:ft.com+emerging+markets&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:reuters.com+emerging+economy&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=emerging+markets+BRICS+Southeast+Asia+Africa+developing+economies&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'emerging markets, BRICS, developing economies, Southeast Asia, Africa, India, Brazil, emerging market growth',
+  },
+  'sports-betting': {
+    label:   'Sports Betting',
+    desc:    'Odds, fantasy sports, DFS, legal betting markets, and the intersection of sports and money.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=site:actionnetwork.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:espn.com+fantasy+betting&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:sportsbookreview.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=sports+betting+fantasy+football+DraftKings+FanDuel+odds&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'sports betting, fantasy sports, DFS, odds, legal gambling, DraftKings, FanDuel, sportsbooks',
+  },
+  'gaming': {
+    label:   'Gaming',
+    desc:    'Video games, esports, game studios, and the culture around interactive entertainment.',
+    feeds:   [
+      'https://news.google.com/rss/search?q=site:kotaku.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:ign.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=site:gamespot.com&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=video+games+gaming+esports+Nintendo+PlayStation+Xbox&hl=en-US&gl=US&ceid=US:en',
+    ],
+    context: 'video games, gaming, esports, game studios, Nintendo, PlayStation, Xbox, PC gaming, mobile gaming, Twitch',
+  },
 };
 
 // ── Ordered interest keys — 21 items, 3 columns = 7 clean rows ─
 const INTEREST_EMOJI = {
-  'ai':              '🤖',
-  'markets':         '📈',
-  'venture-capital': '🚀',
-  'technology':      '💻',
-  'geopolitics':     '🌍',
-  'business':        '🏢',
-  'crypto':          '₿',
-  'science':         '🔬',
-  'culture':         '🎨',
-  'sports-business': '🏆',
-  'real-estate':     '🏠',
-  'energy-climate':  '⚡',
-  'healthcare':      '🧬',
-  'economic-policy': '📊',
-  'leadership':      '💼',
-  'philosophy':      '🧠',
-  'film':            '🎬',
-  'music':           '🎵',
-  'personal-finance':'💰',
-  'food':            '🍽️',
-  'fashion':         '👗',
+  'ai':                   '🤖',
+  'markets':              '📈',
+  'venture-capital':      '🚀',
+  'technology':           '💻',
+  'geopolitics':          '🗺️',
+  'business':             '🏢',
+  'crypto':               '₿',
+  'science':              '🔬',
+  'culture':              '🎨',
+  'sports-business':      '🏆',
+  'real-estate':          '🏠',
+  'energy-climate':       '🌱',
+  'healthcare':           '🧬',
+  'economic-policy':      '📊',
+  'leadership':           '💼',
+  'philosophy':           '🧠',
+  'film':                 '🎬',
+  'music':                '🎵',
+  'personal-finance':     '💰',
+  'food':                 '🍽️',
+  'fashion':              '👗',
+  'fitness':              '🏃',
+  'mental-health':        '🧘',
+  'health-wellness':      '💊',
+  'travel':               '✈️',
+  'defense':              '🛡️',
+  'energy-infrastructure':'⚡',
+  'books':                '📚',
+  'emerging-markets':     '🌍',
+  'sports-betting':       '🎯',
+  'gaming':               '🎸',
 };
 
 const INTEREST_KEYS = [
-  'ai',              'markets',        'venture-capital',
-  'technology',      'geopolitics',    'business',
-  'crypto',          'science',        'culture',
-  'sports-business', 'real-estate',    'energy-climate',
-  'healthcare',      'economic-policy','leadership',
-  'philosophy',      'film',           'music',
-  'personal-finance','food',           'fashion',
+  'ai',                   'markets',              'venture-capital',
+  'technology',           'geopolitics',          'business',
+  'crypto',               'science',              'culture',
+  'sports-business',      'real-estate',          'energy-climate',
+  'healthcare',           'economic-policy',      'leadership',
+  'philosophy',           'film',                 'music',
+  'personal-finance',     'food',                 'fashion',
+  'fitness',              'mental-health',         'health-wellness',
+  'travel',               'defense',              'energy-infrastructure',
+  'books',                'emerging-markets',     'sports-betting',
+  'gaming',
 ];
 
 // ── Adjacent topics (drives Explore "Suggested for you") ─────
@@ -3863,9 +4016,12 @@ function renderStep3(el) {
 }
 
 // Step 4 — Interests
+const CHECK_SVG = `<svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,7 5.5,10 11,3"/></svg>`;
+const LOCK_SVG  = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+
 function renderStep4(el) {
   el.innerHTML = `
-    <div class="ob-step-inner">
+    <div class="ob-step-inner ob-step-inner-wide">
       <h2 class="ob-question">What do you want to stay ahead of?</h2>
       <p class="ob-subtext" id="s4-sub">Pick at least 3. These become your Signal.</p>
       <div class="ob-interests-grid" id="s4-grid"></div>
@@ -3873,7 +4029,7 @@ function renderStep4(el) {
         <div class="preview-label">Your Signal will cover</div>
         <span id="s4-preview-text">Nothing selected yet</span>
       </div>
-      <p class="ob-min-note" id="s4-note">Select at least 3 to continue</p>
+      <p class="ob-min-note" id="s4-note">Select at least 3 topics · 0 selected</p>
       <button class="ob-cta" id="s4-cta" disabled>Build My Signal</button>
     </div>`;
 
@@ -3885,14 +4041,19 @@ function renderStep4(el) {
 
   INTEREST_KEYS.forEach(key => {
     const info  = INTEREST_MAP[key];
-    const emoji = INTEREST_EMOJI[key] || '';
+    const emoji = INTEREST_EMOJI[key] || '·';
     const card  = document.createElement('div');
-    card.className = 'ob-interest-card' + (obData.interests.includes(key) ? ' selected' : '');
+    const isSelected = obData.interests.includes(key);
+    card.className   = 'ob-interest-card' + (isSelected ? ' selected' : '');
     card.dataset.key = key;
-    card.innerHTML = emoji
-      ? `<span class="ic-emoji">${emoji}</span><span>${escapeHtml(info.label)}</span>`
-      : escapeHtml(info.label);
+    card.innerHTML   = `
+      <span class="ic-emoji">${emoji}</span>
+      <span class="ic-label">${escapeHtml(info.label)}</span>
+      <span class="ic-check" aria-hidden="true">${CHECK_SVG}</span>
+      <span class="ic-lock"  aria-hidden="true">${LOCK_SVG}</span>`;
+
     card.addEventListener('click', () => {
+      if (card.classList.contains('locked')) return;
       const idx = obData.interests.indexOf(key);
       if (idx === -1) obData.interests.push(key);
       else            obData.interests.splice(idx, 1);
@@ -3903,10 +4064,10 @@ function renderStep4(el) {
   });
 
   function updateInterestUI() {
-    const n = obData.interests.length;
+    const n   = obData.interests.length;
     const met = n >= 3;
-    cta.disabled = !met;
-    note.textContent  = met ? `${n} selected` : `Select at least ${3 - n} more`;
+    cta.disabled     = !met;
+    note.textContent = `Select at least 3 topics · ${n} selected`;
     note.classList.toggle('met', met);
     if (n > 0) {
       preview.classList.add('has-items');
