@@ -25,7 +25,7 @@ vercel env pull /tmp/signal-env --cwd /Users/joshuabreer/Documents/Claude/Projec
 
 **Test an API proxy endpoint:**
 ```bash
-curl -s -X POST https://signal-app-gray-ten.vercel.app/api/groq \
+curl -s -X POST https://signaldaily.app/api/groq \
   -H "Content-Type: application/json" \
   -d '{"model":"llama-3.3-70b-versatile","messages":[{"role":"user","content":"hi"}],"max_tokens":5}'
 ```
@@ -112,7 +112,7 @@ All styles are inline in `signal.html` before `</style>`. Custom properties on `
 
 **Add a new interest topic:** Add to `INTEREST_MAP` (with `label`, `feeds[]`, `context`), `INTEREST_KEYS` array, and `INTEREST_EMOJI` map.
 
-**Add a new ElevenLabs voice:** Add to `SIGNAL_VOICES` array with `{ id: '<elevenlabs_voice_id>', label, desc, webSpeech }`. Verify the voice ID works first: `curl -s -o /dev/null -w "%{http_code}" -X POST https://signal-app-gray-ten.vercel.app/api/elevenlabs -H "Content-Type: application/json" -d '{"voice_id":"ID","text":"test"}'`.
+**Add a new ElevenLabs voice:** Add to `SIGNAL_VOICES` array with `{ id: '<elevenlabs_voice_id>', label, desc, webSpeech }`. Verify the voice ID works first: `curl -s -o /dev/null -w "%{http_code}" -X POST https://signaldaily.app/api/elevenlabs -H "Content-Type: application/json" -d '{"voice_id":"ID","text":"test"}'`.
 
 **Add a new external API proxy:** Create `api/service.js` following the pattern of existing proxies (method guard → read `process.env.KEY` → fetch upstream → return response). Add the key to Vercel with `vercel env add`. The `api/` directory is zero-config — Vercel auto-detects and deploys all `.js` files there as serverless functions.
 

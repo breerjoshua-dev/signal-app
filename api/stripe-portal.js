@@ -1,15 +1,22 @@
 import Stripe from 'stripe';
 
-const CORS_ORIGIN = 'https://signal-app-gray-ten.vercel.app';
+const PRIMARY_ORIGIN = 'https://signaldaily.app';
+const ALLOWED_ORIGINS = [
+  'https://signaldaily.app',
+  'https://www.signaldaily.app',
+  'https://signal-app-gray-ten.vercel.app',
+];
 
-function corsHeaders(res) {
-  res.setHeader('Access-Control-Allow-Origin', CORS_ORIGIN);
+function corsHeaders(req, res) {
+  const origin  = req.headers.origin || '';
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : PRIMARY_ORIGIN;
+  res.setHeader('Access-Control-Allow-Origin',  allowed);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
 export default async function handler(req, res) {
-  corsHeaders(res);
+  corsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
@@ -34,7 +41,7 @@ export default async function handler(req, res) {
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer:   customerId,
-      return_url: `${CORS_ORIGIN}/profile`,
+      return_url: `${PRIMARY_ORIGIN}/profile`,
     });
 
     return res.status(200).json({ url: portalSession.url });

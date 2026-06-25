@@ -1,15 +1,22 @@
 import Stripe from 'stripe';
 
-const CORS_ORIGIN = 'https://signal-app-gray-ten.vercel.app';
+const PRIMARY_ORIGIN = 'https://signaldaily.app';
+const ALLOWED_ORIGINS = [
+  'https://signaldaily.app',
+  'https://www.signaldaily.app',
+  'https://signal-app-gray-ten.vercel.app',
+];
 
-function corsHeaders(res) {
-  res.setHeader('Access-Control-Allow-Origin', CORS_ORIGIN);
+function corsHeaders(req, res) {
+  const origin  = req.headers.origin || '';
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : PRIMARY_ORIGIN;
+  res.setHeader('Access-Control-Allow-Origin',  allowed);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
 export default async function handler(req, res) {
-  corsHeaders(res);
+  corsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
@@ -53,8 +60,8 @@ export default async function handler(req, res) {
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       customer_email: email,
       client_reference_id: userId,
-      success_url: `${CORS_ORIGIN}/?upgraded=true`,
-      cancel_url:  `${CORS_ORIGIN}/?checkout=cancelled`,
+      success_url: `${PRIMARY_ORIGIN}/?upgraded=true`,
+      cancel_url:  `${PRIMARY_ORIGIN}/?checkout=cancelled`,
       metadata: {
         supabase_user_id: userId,
         price_id: resolvedPriceId,
