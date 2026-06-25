@@ -118,7 +118,7 @@ export default async function handler(req, res) {
 
         if (status === 'active' || status === 'trialing') break; // no change needed
 
-        if (status === 'past_due' || status === 'unpaid') {
+        if (status === 'past_due' || status === 'unpaid' || status === 'canceled') {
           const userId = await supabaseSelect(`stripe_customer_id=eq.${customerId}`);
           if (!userId) { console.warn('subscription.updated: no profile found for customer', customerId); break; }
           await supabaseUpdate(`profiles?id=eq.${userId}`, { plan: 'free' });
