@@ -3856,11 +3856,16 @@ async function init() {
     if (session) {
       const { data: dbProfile } = await supabaseClient
         .from('profiles').select('*').eq('id', session.user.id).single();
-      if (dbProfile && dbProfile.interests && dbProfile.interests.length) {
+
+      const hasName      = !!(dbProfile?.name && dbProfile.name.trim());
+      const hasInterests = !!(dbProfile?.interests && dbProfile.interests.length);
+
+      if (hasName && hasInterests) {
+        // Complete profile — show app
         profile = {
-          name:               dbProfile.name             || '',
+          name:               dbProfile.name,
           identities:         [],
-          interests:          dbProfile.interests         || [],
+          interests:          dbProfile.interests,
           goal:               dbProfile.goals             || '',
           depth:              dbProfile.depth             || 'balanced',
           tone:               dbProfile.tone              || 'conversational',
@@ -3876,6 +3881,17 @@ async function init() {
         showApp();
         return;
       }
+
+      // Session exists but profile is incomplete — preserve auth, route to onboarding
+      profile = {
+        email:              session.user.email,
+        supabaseId:         session.user.id,
+        tier:               dbProfile?.plan || 'free',
+        onboardingComplete: false,
+      };
+      saveProfile(profile);
+      startOnboarding();
+      return;
     }
   } catch(e) {
     console.warn('Supabase session check failed, falling back to localStorage:', e.message);
@@ -4433,12 +4449,67 @@ function buildTierHTML(key) {
     </div>`;
 }
 
-function completeOnboarding(tier) {
+async function completeOnboarding(tier) {
   obData.tier = tier;
-  // Dismiss paywall, show sign-up
   const overlay = $('paywall-overlay');
   overlay.classList.remove('visible');
+
+  // If the user already has a live session (completing a profile they skipped earlier),
+  // upsert the profile data directly without showing the signup form again.
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      await doProfileUpsert(session.user.id, session.user.email, obData);
+      return;
+    }
+  } catch (_) {}
+
+  // No session — new user: proceed to signup screen
   setTimeout(() => showAuthScreen('signup'), 300);
+}
+
+async function doProfileUpsert(userId, email, data) {
+  await supabaseClient.from('profiles').upsert({
+    id:        userId,
+    name:      data.name       || '',
+    interests: data.interests  || [],
+    goals:     data.goal       || '',
+    tone:      data.tone       || 'conversational',
+    depth:     data.depth      || 'balanced',
+    schedule:  data.schedule?.length ? data.schedule : ['morning'],
+    plan:      data.tier       || 'free',
+  }, { onConflict: 'id' });
+
+  profile = {
+    name:               data.name       || '',
+    identities:         data.identities || [],
+    interests:          data.interests  || [],
+    goal:               data.goal       || '',
+    depth:              data.depth      || 'balanced',
+    tone:               data.tone       || 'conversational',
+    schedule:           data.schedule?.length ? data.schedule : ['morning'],
+    tier:               data.tier       || 'free',
+    email,
+    supabaseId:         userId,
+    onboardingComplete: true,
+  };
+  saveProfile(profile);
+
+  // Paid tier → redirect to Stripe
+  if (data.tier === 'pro' || data.tier === 'annual') {
+    const priceId = data.tier === 'annual' ? 'PRICE_ANNUAL' : 'PRICE_MONTHLY';
+    try {
+      const res = await fetch('/api/stripe-checkout', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ priceId, userId, email, trial: data.trialEnabled !== false }),
+      });
+      const { url } = await res.json();
+      if (url) { window.location.href = url; return; }
+    } catch (_) {}
+  }
+
+  dismissAuthAndShowApp();
 }
 
 /* ============================================================
@@ -4475,7 +4546,7 @@ function showAuthScreen(mode) {
       <div class="auth-switch">
         ${isSignUp
           ? `Already have an account? <button id="auth-mode-switch">Sign in</button>`
-          : `New to Signal? <button id="auth-mode-switch">Create an account</button>`
+          : `New to Signal? <button id="auth-mode-switch">Start here →</button>`
         }
       </div>
     </div>`;
@@ -4530,7 +4601,17 @@ function showAuthScreen(mode) {
     el.addEventListener('keydown', e => { if (e.key === 'Enter') submitBtn.click(); });
   });
 
-  switchBtn.addEventListener('click', () => showAuthScreen(isSignUp ? 'signin' : 'signup'));
+  switchBtn.addEventListener('click', () => {
+    if (isSignUp) {
+      showAuthScreen('signin');
+    } else {
+      // Sign-in screen → "Start here": send new users through the full onboarding flow.
+      // Never drop them into a bare signup form without personalization.
+      $('auth-overlay').classList.remove('visible');
+      $('onboarding').classList.remove('hidden', 'fade-out');
+      startOnboarding();
+    }
+  });
   emailEl.focus();
 }
 
@@ -4538,6 +4619,22 @@ async function doSignUp(email, password, showError, submitBtn) {
   try {
     const { data, error } = await supabaseClient.auth.signUp({ email, password });
     if (error) throw error;
+
+    // Guard: if obData has no name or interests the user bypassed onboarding.
+    // Preserve their new session and route them back to onboarding to collect it.
+    if (!obData.name || !obData.interests.length) {
+      profile = {
+        email,
+        supabaseId:         data.user.id,
+        tier:               'free',
+        onboardingComplete: false,
+      };
+      saveProfile(profile);
+      $('auth-overlay').classList.remove('visible');
+      $('onboarding').classList.remove('hidden', 'fade-out');
+      startOnboarding();
+      return;
+    }
 
     await supabaseClient.from('profiles').upsert({
       id:        data.user.id,
@@ -4620,7 +4717,14 @@ async function doSignIn(email, password, showError, submitBtn) {
       saveProfile(profile);
       dismissAuthAndShowApp();
     } else {
-      // Account exists but no profile — send through onboarding
+      // Account exists but profile is incomplete — preserve session, route to onboarding
+      profile = {
+        email:              data.user.email,
+        supabaseId:         data.user.id,
+        tier:               dbProfile?.plan || 'free',
+        onboardingComplete: false,
+      };
+      saveProfile(profile);
       $('auth-overlay').classList.remove('visible');
       $('onboarding').classList.remove('hidden', 'fade-out');
       startOnboarding();
