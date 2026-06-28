@@ -1,4 +1,26 @@
+import { timingSafeEqual } from 'crypto';
+import { rateLimit, securityHeaders } from './_rateLimit.js';
+
+function safeCompare(a, b) {
+  try {
+    const bufA = Buffer.from(String(a));
+    const bufB = Buffer.from(String(b));
+    if (bufA.length !== bufB.length) {
+      // Consume similar time before returning to avoid length oracle
+      timingSafeEqual(bufA, Buffer.alloc(bufA.length));
+      return false;
+    }
+    return timingSafeEqual(bufA, bufB);
+  } catch {
+    return false;
+  }
+}
+
 export default async function handler(req, res) {
+  securityHeaders(res);
+
+  if (rateLimit(req, res, 10)) return;
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -11,8 +33,8 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server misconfigured' });
   }
 
-  const provided = req.headers['x-admin-token'];
-  if (!provided || provided !== adminToken) {
+  const provided = req.headers['x-admin-token'] || '';
+  if (!safeCompare(provided, adminToken)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

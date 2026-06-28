@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { securityHeaders } from './_rateLimit.js';
 
 export const config = { api: { bodyParser: false } };
 
@@ -45,6 +46,8 @@ async function supabaseSelect(filter) {
 }
 
 export default async function handler(req, res) {
+  securityHeaders(res);
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

@@ -3791,7 +3791,13 @@ async function init() {
   profile = loadProfile();
   if (profile && profile.onboardingComplete) {
     $('onboarding').classList.add('hidden');
-    showApp();
+    // Previously authenticated users must have a valid Supabase session.
+    // If none exists (expired or revoked), require re-login.
+    if (profile.supabaseId) {
+      showAuthScreen('signin');
+    } else {
+      showApp();
+    }
   } else {
     startOnboarding();
   }
@@ -4904,7 +4910,6 @@ async function onGenerate() {
     updateGreetingReadTime();
 
   } catch (e) {
-    console.error(e);
     showError(humanizeError(e));
   } finally {
     $('state-loading').classList.remove('visible');

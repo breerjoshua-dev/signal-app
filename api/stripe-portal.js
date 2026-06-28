@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { rateLimit, securityHeaders } from './_rateLimit.js';
 
 const PRIMARY_ORIGIN = 'https://signaldaily.app';
 const ALLOWED_ORIGINS = [
@@ -16,11 +17,14 @@ function corsHeaders(req, res) {
 }
 
 export default async function handler(req, res) {
+  securityHeaders(res);
   corsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
   }
+
+  if (rateLimit(req, res, 30)) return;
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });

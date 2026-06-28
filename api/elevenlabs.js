@@ -1,4 +1,10 @@
+import { rateLimit, securityHeaders } from './_rateLimit.js';
+
 export default async function handler(req, res) {
+  securityHeaders(res);
+
+  if (rateLimit(req, res, 20)) return;
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
