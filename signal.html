@@ -2658,6 +2658,68 @@ html.theme-light .fp-card-img { background: var(--surface-2); }
 .explore-all-item:hover               { border-color: var(--accent-border); color: var(--ink); }
 .explore-all-item.in-signal           { color: var(--muted); cursor: default; border-color: var(--rule); }
 .explore-all-item.in-signal:hover     { border-color: var(--rule); color: var(--muted); }
+.explore-all-item-locked {
+  opacity: 0.5;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.explore-all-item-locked:hover {
+  border-color: var(--rule) !important;
+  color: var(--ink-soft) !important;
+  background: var(--surface) !important;
+}
+.explore-all-lock-icon { flex-shrink: 0; color: var(--muted); }
+.explore-upgrade-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px 40px;
+  gap: 14px;
+}
+.explore-upgrade-headline {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.25;
+  margin-bottom: 2px;
+}
+.explore-upgrade-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 340px;
+}
+.explore-upgrade-cta {
+  display: inline-block;
+  background: var(--gold);
+  color: #111;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--sans);
+  padding: 13px 30px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 8px;
+}
+.explore-upgrade-cta:disabled { opacity: 0.6; cursor: not-allowed; }
+.explore-upgrade-cta:not(:disabled):hover { opacity: 0.88; }
+.explore-upgrade-later {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-family: var(--sans);
+  cursor: pointer;
+  padding: 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.explore-upgrade-later:hover { color: var(--ink); }
 .in-signal-chip {
   font-size: 9px;
   font-weight: 700;
@@ -5968,8 +6030,16 @@ function renderExplore() {
 
     <div class="explore-block-label">Browse all topics</div>
     <div class="explore-all-grid" id="explore-all">
-      ${INTEREST_KEYS.map(key => {
-        const inSig = userSet.has(key);
+      ${INTEREST_KEYS.map((key, i) => {
+        const inSig  = userSet.has(key);
+        const locked = isFreeTier() && i >= 2;
+        if (locked) {
+          return `
+            <div class="explore-all-item explore-all-item-locked" data-key="${key}">
+              <span>${escapeHtml(INTEREST_MAP[key].label)}</span>
+              <svg class="explore-all-lock-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>`;
+        }
         return `
           <div class="explore-all-item${inSig ? ' in-signal' : ''}" data-key="${key}">
             <span>${escapeHtml(INTEREST_MAP[key].label)}</span>
@@ -5990,27 +6060,15 @@ function renderExplore() {
     card.addEventListener('click', () => showUpgradeModal());
   });
 
-  // Wire all-topics items
-  container.querySelectorAll('.explore-all-item:not(.in-signal)').forEach(item => {
+  // Wire accessible browse-all items (excludes locked and in-signal)
+  container.querySelectorAll('.explore-all-item:not(.in-signal):not(.explore-all-item-locked)').forEach(item => {
     item.addEventListener('click', () => loadExploreTopic(item.dataset.key));
   });
 
-  // Free tier: lock the user's own topics beyond index 1 in the "In Signal" items
-  if (isFreeTier() && profile?.interests?.length > 2) {
-    const lockedKeys = new Set(profile.interests.slice(2));
-    container.querySelectorAll('.explore-all-item.in-signal').forEach(item => {
-      if (lockedKeys.has(item.dataset.key)) {
-        item.style.opacity = '0.45';
-        item.style.position = 'relative';
-        item.style.cursor = 'pointer';
-        const lock = document.createElement('span');
-        lock.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-left:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
-        lock.style.pointerEvents = 'none';
-        item.appendChild(lock);
-        item.addEventListener('click', () => showUpgradeModal());
-      }
-    });
-  }
+  // Wire locked browse-all items — click shows upgrade modal
+  container.querySelectorAll('.explore-all-item-locked').forEach(item => {
+    item.addEventListener('click', () => showUpgradeModal());
+  });
 }
 
 function buildExploreCardHTML(key) {
@@ -6045,6 +6103,48 @@ function buildExploreLockedCardHTML(key) {
 async function loadExploreTopic(key) {
   const info = INTEREST_MAP[key];
   if (!info) return;
+
+  // Defense in depth: if this topic is locked for free users, show upgrade prompt
+  if (isFreeTier() && INTEREST_KEYS.indexOf(key) >= 2) {
+    activeExploreKey = key;
+    const resultEl = $('explore-result');
+    if (resultEl) {
+      resultEl.style.display = 'block';
+      resultEl.innerHTML = `
+        <div class="explore-upgrade-prompt">
+          <div class="explore-upgrade-headline">This topic is Signal Pro</div>
+          <div class="explore-upgrade-sub">Unlock every topic, unlimited briefings, voice narration, and 60-second mode. 7 days free.</div>
+          <button class="explore-upgrade-cta" id="explore-upgrade-cta">Start Free Trial →</button>
+          <button class="explore-upgrade-later" id="explore-upgrade-later">Maybe later</button>
+        </div>`;
+      resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      document.getElementById('explore-upgrade-cta').addEventListener('click', async () => {
+        if (!profile?.supabaseId || !profile?.email) { showUpgradeModal(); return; }
+        const btn = document.getElementById('explore-upgrade-cta');
+        btn.textContent = 'Taking you to checkout…';
+        btn.disabled = true;
+        try {
+          const res = await fetch('/api/stripe-checkout', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ priceId: 'PRICE_MONTHLY', userId: profile.supabaseId, email: profile.email, trial: true }),
+          });
+          const { url } = await res.json();
+          if (url) { window.location.href = url; }
+        } catch (_) {
+          btn.textContent = 'Start Free Trial →';
+          btn.disabled = false;
+        }
+      });
+
+      document.getElementById('explore-upgrade-later').addEventListener('click', () => {
+        resultEl.style.display = 'none';
+        resultEl.innerHTML = '';
+      });
+    }
+    return;
+  }
 
   activeExploreKey = key;
 
@@ -6088,12 +6188,16 @@ async function loadExploreTopic(key) {
 
   if (!resultEl || activeExploreKey !== key) return; // navigated away
 
-  const inSignal = profile && profile.interests.includes(key);
+  const inSignal      = profile && profile.interests.includes(key);
+  const isTopicLocked = isFreeTier() && INTEREST_KEYS.indexOf(key) >= 2;
 
   resultEl.innerHTML = `
     <div class="explore-result-header">
       <div class="explore-result-title">${escapeHtml(info.label)}</div>
-      ${!inSignal ? `<button class="explore-add-btn" id="explore-add-btn">+ Add to my Signal</button>` : '<span style="font-size:12px;color:var(--success)">✓ In your Signal</span>'}
+      ${inSignal
+        ? '<span style="font-size:12px;color:var(--success)">✓ In your Signal</span>'
+        : (!isTopicLocked ? `<button class="explore-add-btn" id="explore-add-btn">+ Add to my Signal</button>` : '')
+      }
     </div>
     ${lede ? `
     <p class="section-lede" style="margin-bottom:20px">${escapeHtml(typeof lede === 'string' ? lede : (lede.lede || ''))}</p>` : ''}
