@@ -3295,8 +3295,8 @@ const HEADLINES_PER_SECTION  = 8;
 const HEADLINES_FOR_PROMPT   = 8;
 const POLLINATIONS_URL    = 'https://text.pollinations.ai/openai';
 const POLLINATIONS_MODEL  = 'openai';
-const GROQ_MODEL          = 'llama-3.3-70b-versatile';
-const GROQ_MODEL_RESERVE  = 'llama-3.3-70b-versatile'; // same quality model; separate retry pass
+const GROQ_MODEL          = 'openai/gpt-oss-120b';   // llama-3.3-70b-versatile deprecated 2026-08-16
+const GROQ_MODEL_RESERVE  = 'qwen/qwen3.6-27b';       // fallback; different provider for resilience
 
 // ── Environment & voice ───────────────────────────────────────
 const IS_HOSTED = window.location.protocol === 'https:';
