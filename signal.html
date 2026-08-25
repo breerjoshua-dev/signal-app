@@ -3290,7 +3290,7 @@ const supabaseClient = window.supabase.createClient(
 const PROFILE_KEY = 'signal:profile';
 
 // ── RSS / LLM config ──────────────────────────────────────────
-const RSS_PROXY          = 'https://api.rss2json.com/v1/api.json?rss_url=';
+const RSS_PROXY          = '/api/rss?url=';
 const HEADLINES_PER_SECTION  = 8;
 const HEADLINES_FOR_PROMPT   = 8;
 const POLLINATIONS_URL    = 'https://text.pollinations.ai/openai';
@@ -5885,7 +5885,7 @@ async function loadCachedBriefing() {
       .select('content')
       .eq('user_id', profile.supabaseId)
       .eq('date', todayStr())
-      .single();
+      .maybeSingle();
     if (error || !data) return null;
     return data.content;
   } catch (e) { return null; }
@@ -6469,13 +6469,52 @@ async function fetchSection(section) {
   return dedupeAndSort(all).slice(0, HEADLINES_PER_SECTION);
 }
 
+// Parse RSS 2.0 or Atom XML, returning [{title, link, pubDate}]
+function parseRSS(xmlString) {
+  let doc;
+  try {
+    doc = new DOMParser().parseFromString(xmlString, 'text/xml');
+  } catch (_) { return []; }
+  if (doc.querySelector('parsererror')) return [];
+
+  const isAtom  = doc.documentElement.localName === 'feed';
+  const itemEls = isAtom
+    ? [...doc.querySelectorAll('feed > entry')]
+    : [...doc.querySelectorAll('channel > item')];
+
+  return itemEls.map(el => {
+    const title = el.getElementsByTagName('title')[0]?.textContent?.trim() || '';
+
+    // <link> in RSS is a text node; in Atom it's an attribute
+    let link = '';
+    if (isAtom) {
+      const linkEl = el.querySelector('link[rel="alternate"], link[href]') || el.querySelector('link');
+      link = linkEl?.getAttribute('href') || linkEl?.textContent?.trim() || '';
+    } else {
+      link = el.getElementsByTagName('link')[0]?.textContent?.trim() || '';
+    }
+
+    const pubDate = el.getElementsByTagName('pubDate')[0]?.textContent?.trim()
+                 || el.getElementsByTagName('published')[0]?.textContent?.trim()
+                 || el.getElementsByTagName('updated')[0]?.textContent?.trim()
+                 || '';
+
+    return { title, link, pubDate };
+  }).filter(it => it.title && it.link);
+}
+
 async function fetchFeed(feedUrl) {
   const url = RSS_PROXY + encodeURIComponent(feedUrl);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('rss failed: ' + res.status);
-  const data = await res.json();
-  if (!data || !Array.isArray(data.items)) return [];
-  return data.items.map(parseHeadline);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (!res.ok) throw new Error('rss proxy failed: ' + res.status);
+    const xml = await res.text();
+    return parseRSS(xml).map(parseHeadline);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function parseHeadline(raw) {
