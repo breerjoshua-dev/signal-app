@@ -3293,8 +3293,8 @@ const PROFILE_KEY = 'signal:profile';
 const RSS_PROXY          = '/api/rss?url=';
 const HEADLINES_PER_SECTION  = 8;
 const HEADLINES_FOR_PROMPT   = 8;
-const GROQ_MODEL         = 'openai/gpt-oss-120b';
-const GROQ_MODEL_RESERVE = 'openai/gpt-oss-20b';
+const GROQ_MODEL         = 'openai/gpt-oss-120b';  // reasoning model — needs 1500+ tokens
+const GROQ_MODEL_RESERVE = 'openai/gpt-oss-20b';   // reasoning model — ~250 token reasoning overhead
 
 // ── Environment & voice ───────────────────────────────────────
 const IS_HOSTED = window.location.protocol === 'https:';
@@ -6234,56 +6234,21 @@ async function loadExploreTopic(key) {
    ============================================================ */
 
 function buildSystemPrompt(tone, name, mode, usedOpenings = []) {
-  const timeLabel = { morning: 'morning', midday: 'midday', evening: 'evening' };
-  const time = timeLabel[mode] || 'morning';
-
-  const editionFraming = mode === 'evening'
-    ? 'This is the evening edition. Recap the day\'s key developments, draw connections across the arc of today\'s news, and look ahead to what tomorrow may bring.'
-    : mode === 'midday'
-    ? 'This is the midday edition. Follow up on morning developments, add analytical depth as stories have evolved, and surface what\'s shaping the rest of the day.'
-    : 'This is the morning edition. Focus on overnight and early-breaking developments — set the stage for what to watch today.';
-
-  const clicheBan = `BANNED WORDS AND PHRASES — never use under any circumstances: "abuzz", "making waves", "is making headlines", "taking the world by storm", "sparking debate", "game-changer", "paradigm shift", "on the horizon", "moving the needle", "at the end of the day", "make no mistake", "in a world where", "landscape", "ecosystem" (when used metaphorically), "unpack", "double down", "amid growing", "has emerged". Write with original vocabulary every time.`;
-
-  const openerBan = usedOpenings.length > 0
-    ? `FORBIDDEN OPENERS — these exact phrase starts have been used in earlier sections of this same briefing. Your lede MUST open with completely different words and structure: ${usedOpenings.map(o => `"${o}…"`).join('; ')}.`
-    : '';
-
-  const jsonSchema = `You MUST respond with valid JSON only — no markdown, no prose outside the JSON. Use exactly this structure:
-{"highlight":"one punchy specific sentence — the single most important takeaway from this section, written to stand alone and be genuinely interesting to a smart reader independent of any other context","kicker":"optional — see rules below","lede":"Paragraph 1 (3-4 sentences): the concrete facts — what happened.\n\nParagraph 2 (3-4 sentences): context — why it's developing this way, the stakes and competing forces.\n\nParagraph 3 (2-3 sentences): what to watch next and the broader implication. End with the sharpest possible closing line."}
-
-HIGHLIGHT RULES: The highlight must be specific, not vague — name the actual companies, numbers, people, or events involved. It should be a genuine insight, not a restatement of the headline. No clichés. This appears in a cross-briefing glance view alongside highlights from every other section.
-
-LEDE RULES: Write 300-350 words total across exactly THREE paragraphs separated by literal \\n\\n in the JSON string. This is substantive editorial journalism, not a teaser — the reader should come away with a real understanding of the story, its context, and its significance. Smooth prose, varied sentence rhythm, no throat-clearing opener. The closing line of paragraph 3 must be the single sharpest insight in the piece.
-
-KICKER RULES: The kicker is a single italic line above the lede — like a magazine pullout. Include it ONLY when the source material contains either (a) a genuinely memorable real quote under 15 words with clear attribution, formatted as: \\"Quote text\\" — Name, or (b) a single striking real number that reframes the story, formatted as: 47% — brief context. Omit in most sections (1 in 4 at most). Never fabricate. Omit the key entirely if there is no kicker.`;
-
-  const shared = `${clicheBan} ${openerBan} Write like a skilled editorial columnist — flowing prose, specific and substantive, varied sentence rhythm. Do NOT open with a greeting, the reader's name, or throat-clearing. Start the lede directly with the story. ${jsonSchema}`;
-
-  if (tone === 'sharp') {
-    return `You are Signal — ${name}'s ${time} intelligence briefing. Write with precision and authority. No filler, no hedging, no soft qualifiers. Assume the reader is the sharpest person in the room. Every word earns its place. ${editionFraming} ${shared}`;
-  }
-  if (tone === 'bold') {
-    return `You are Signal — ${name}'s ${time} briefing with a point of view. Take clear editorial positions. Readers come for your actual take, not a summary of all sides. Be direct, be confident, have opinions. ${editionFraming} ${shared}`;
-  }
-  return `You are Signal — ${name}'s ${time} intelligence companion. Smart but relaxed — like a well-read friend catching you up over coffee. Intelligent but never stiff. Natural language, never forced. ${editionFraming} ${shared}`;
+  return 'You are a news analyst. Write a briefing section in JSON format only.';
 }
 
 function buildUserPrompt(sectionLabel, items, depth) {
-  const depthNote = depth === 'quick'
-    ? 'Keep the lede to around 200 words total — tight paragraphs, essential only, but still 3 clear paragraphs.'
-    : depth === 'deep'
-    ? 'Push the lede to 400-450 words — deep context, multiple angles, strong consequence analysis, and a decisive closing line.'
-    : '';
-  const bullets = items.map((it, i) =>
+  const headlines = items.map((it, i) =>
     `${i + 1}. ${it.title}${it.source ? ' (' + it.source + ')' : ''}`
   ).join('\n');
-  return `Section: ${sectionLabel}\nHeadlines:\n${bullets}\n\nReturn the JSON briefing object.${depthNote ? ' ' + depthNote : ''}`;
+  return `Write a news briefing section about ${sectionLabel} based on these headlines:\n${headlines}\n\nReturn ONLY this JSON structure, nothing else:\n{\n  "highlight": "one punchy sentence — the single most important takeaway",\n  "kicker": "one short punchy sentence (omit key if nothing fits)",\n  "lede": "two to three paragraphs of analysis, 150-200 words total"\n}`;
 }
 
 function getMaxTokens(depth) {
-  if (depth === 'quick') return 500;
-  return 800;
+  // Reasoning models (gpt-oss) consume 250-450 tokens on reasoning before writing content.
+  // Budget must cover reasoning overhead + actual JSON output.
+  if (depth === 'quick') return 1200;
+  return 1800;
 }
 
 async function fetchCommentary(system, user) {
@@ -6383,8 +6348,14 @@ async function callGroq(system, user, maxTokens = 350, attempt = 0, model = GROQ
   const data    = await res.json();
   const content = data?.choices?.[0]?.message?.content;
   if (!content) {
-    console.error('[Signal] Groq: no content in response —', JSON.stringify(data).slice(0, 200));
-    throw new Error('groq: no content');
+    // Log full response so we can see what the model actually returned
+    console.error('[Signal] Groq empty content — model:', model);
+    console.error('[Signal] Groq full response:', JSON.stringify(data, null, 2));
+    const reasoning = data?.choices?.[0]?.message?.reasoning;
+    if (reasoning) console.error('[Signal] Groq reasoning field (first 400 chars):', String(reasoning).slice(0, 400));
+    const usage = data?.usage;
+    if (usage) console.error('[Signal] Groq token usage:', JSON.stringify(usage));
+    throw new Error('groq: no content (model=' + model + ' finish=' + (data?.choices?.[0]?.finish_reason || '?') + ')');
   }
 
   // Strip markdown fences and extract first { … last } substring
