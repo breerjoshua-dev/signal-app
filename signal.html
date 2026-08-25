@@ -3693,7 +3693,22 @@ const INTEREST_MAP = {
 };
 
 // ── Ordered interest keys — 21 items, 3 columns = 7 clean rows ─
+// ── Top Stories — always first, never in onboarding, never cached ──────────
+const TOP_STORIES_KEY = 'top-stories';
+const TOP_STORIES_SECTION = {
+  key:   TOP_STORIES_KEY,
+  label: 'Top Stories',
+  feeds: [
+    'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
+    'https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en',
+    'https://news.google.com/rss/headlines/section/topic/NATION?hl=en-US&gl=US&ceid=US:en',
+    'https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en',
+  ],
+  context: 'breaking news, world events, politics, business, major developments',
+};
+
 const INTEREST_EMOJI = {
+  'top-stories':          '🌐',
   'ai':                   '🤖',
   'markets':              '📈',
   'venture-capital':      '🚀',
@@ -3861,8 +3876,7 @@ function saveProfile(p) {
 // Returns the sections array the main app uses — derived from the
 // user's ordered interests. This replaces the old hardcoded SECTIONS array.
 function getSections() {
-  if (!profile || !profile.interests || !profile.interests.length) return [];
-  return profile.interests
+  const personalized = (profile?.interests || [])
     .filter(k => INTEREST_MAP[k])
     .map(k => ({
       key:     k,
@@ -3870,6 +3884,8 @@ function getSections() {
       feeds:   INTEREST_MAP[k].feeds,
       context: INTEREST_MAP[k].context,
     }));
+  // Top Stories is always first — not user-selectable, never cached
+  return [TOP_STORIES_SECTION, ...personalized];
 }
 
 function getSuggestedTopics() {
@@ -5114,49 +5130,43 @@ async function onGenerate() {
       fetchSportsWidget().catch(() => {});
     }
 
-    // 3. Write AI commentary section by section — track openers to prevent repetition
-    // Free tier: only generate AI for first 2 sections (rest show locked cards)
+    // 3. Write AI commentary — per-section retries, 4s gap between sections.
+    // Free tier: Top Stories (index 0) + first personalized (index 1); rest show locked cards.
+    const RETRY_WAITS = [5000, 10000, 20000, 30000, 60000];
     const generateSections = isFreeTier() ? sectionsWithItems.slice(0, 2) : sectionsWithItems;
     const usedOpenings = [];
     for (let i = 0; i < generateSections.length; i++) {
       const s = generateSections[i];
-      setLoadingLabel(`Writing ${s.label.toLowerCase()}`);
-      console.log(`[Signal] Generating section ${i + 1}/${generateSections.length}: ${s.key}`);
-      try {
-        const system = buildSystemPrompt(profile.tone, profile.name, appMode, usedOpenings);
-        const user   = buildUserPrompt(s.label, s.items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
-        const data   = await fetchCommentary(system, user);
-        briefingData[s.key] = { lede: data, items: s.items, label: s.label };
-        injectLede(s.key, data);
-        console.log(`[Signal] ✓ ${s.key} done`);
-        const ledeText = typeof data === 'string' ? data : (data.lede || '');
-        if (ledeText) usedOpenings.push(ledeText.trim().split(/\s+/).slice(0, 6).join(' '));
-      } catch (err) {
-        console.warn(`[Signal] ✗ ${s.key} failed:`, err.message);
-        briefingData[s.key] = { lede: null, items: s.items, label: s.label };
-        injectLedeError(s.key);
-      }
-      if (i < generateSections.length - 1) await wait(1000);
-    }
-
-    // Auto-retry any failed sections once (with a longer gap to let rate limits clear)
-    const failed = generateSections.filter(s => briefingData[s.key]?.lede === null);
-    if (failed.length > 0) {
-      setLoadingLabel('Retrying failed sections…');
-      await wait(5000);
-      for (const s of failed) {
+      let succeeded = false;
+      for (let attempt = 0; attempt <= RETRY_WAITS.length; attempt++) {
+        if (attempt > 0) {
+          setLoadingLabel(`Retrying ${s.label.toLowerCase()} (${attempt}/${RETRY_WAITS.length})…`);
+          await wait(RETRY_WAITS[attempt - 1]);
+        }
+        setLoadingLabel(`Writing ${s.label.toLowerCase()}`);
+        console.log(`[Signal] ${s.key} attempt ${attempt + 1}`);
         try {
           const system = buildSystemPrompt(profile.tone, profile.name, appMode, usedOpenings);
-          const user   = buildUserPrompt(s.label, s.items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
+          const user   = s.key === TOP_STORIES_KEY
+            ? buildTopStoriesPrompt(s.items.slice(0, HEADLINES_FOR_PROMPT))
+            : buildUserPrompt(s.label, s.items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
           const data   = await fetchCommentary(system, user);
           briefingData[s.key] = { lede: data, items: s.items, label: s.label };
           injectLede(s.key, data);
-          console.log(`[Signal] ✓ ${s.key} retry succeeded`);
+          console.log(`[Signal] ✓ ${s.key} done`);
+          const ledeText = typeof data === 'string' ? data : (data.lede || '');
+          if (ledeText) usedOpenings.push(ledeText.trim().split(/\s+/).slice(0, 6).join(' '));
+          succeeded = true;
+          break;
         } catch (err) {
-          console.warn(`[Signal] ✗ ${s.key} retry also failed:`, err.message);
+          console.warn(`[Signal] ✗ ${s.key} attempt ${attempt + 1} failed:`, err.message);
         }
-        await wait(1000);
       }
+      if (!succeeded) {
+        briefingData[s.key] = { lede: null, items: s.items, label: s.label };
+        injectLedeError(s.key);
+      }
+      if (i < generateSections.length - 1) await wait(4000);
     }
 
     // Save to Supabase cache (non-blocking)
@@ -5849,7 +5859,9 @@ async function regenerateSection(key) {
       .map(d => { const t = typeof d.lede === 'string' ? d.lede : (d.lede?.lede || ''); return t.trim().split(/\s+/).slice(0, 6).join(' '); })
       .filter(Boolean);
     const system = buildSystemPrompt(profile.tone, profile.name, appMode, existingOpeners);
-    const user   = buildUserPrompt(s.label, s.items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
+    const user   = s.key === TOP_STORIES_KEY
+      ? buildTopStoriesPrompt(s.items.slice(0, HEADLINES_FOR_PROMPT))
+      : buildUserPrompt(s.label, s.items.slice(0, HEADLINES_FOR_PROMPT), profile.depth);
     const data   = await fetchCommentary(system, user);
     briefingData[s.key] = { lede: data, items: s.items, label: s.label };
     injectLede(s.key, data);
@@ -5889,9 +5901,14 @@ async function loadCachedBriefing() {
 
 async function saveBriefingCache(sectionsWithItems) {
   if (!profile?.supabaseId || !Object.keys(briefingData).length) return;
+  // Top Stories is never cached — it must always be generated fresh
+  const briefingDataToSave = { ...briefingData };
+  delete briefingDataToSave[TOP_STORIES_KEY];
   const content = {
-    briefingData,
-    sectionMeta: sectionsWithItems.map(s => ({ key: s.key, label: s.label })),
+    briefingData: briefingDataToSave,
+    sectionMeta:  sectionsWithItems
+      .filter(s => s.key !== TOP_STORIES_KEY)
+      .map(s => ({ key: s.key, label: s.label })),
   };
   try {
     await supabaseClient.from('briefings').upsert(
@@ -5911,10 +5928,8 @@ async function autoLoadCachedBriefing() {
   $('generate-btn').textContent = 'Loading…';
 
   try {
-    // Fetch fresh RSS in parallel with section meta from cache
-    const sections = (profile?.interests || [])
-      .filter(k => INTEREST_MAP[k])
-      .map(k => ({ key: k, label: INTEREST_MAP[k].label, feeds: INTEREST_MAP[k].feeds, context: INTEREST_MAP[k].context }));
+    // getSections() always includes Top Stories at index 0
+    const sections = getSections();
 
     const sectionsWithItems = await Promise.all(sections.map(async s => {
       try { const items = await fetchSection(s); return { ...s, items }; }
@@ -5923,9 +5938,11 @@ async function autoLoadCachedBriefing() {
 
     lastSectionsWithItems = sectionsWithItems;
     Object.assign(briefingData, cached.briefingData);
+    // Top Stories never served from cache — clear any stale version
+    delete briefingData[TOP_STORIES_KEY];
     renderFrontPage(sectionsWithItems);
 
-    // Inject all cached ledeObjects
+    // Inject all cached ledeObjects (top-stories skipped — cleared above)
     for (const s of sectionsWithItems) {
       if (briefingData[s.key]?.lede) injectLede(s.key, briefingData[s.key].lede);
     }
@@ -5943,6 +5960,19 @@ async function autoLoadCachedBriefing() {
         await onGenerate();
       });
     }
+
+    // Silently regenerate fresh Top Stories in background — never use cached version
+    const topS = sectionsWithItems.find(s => s.key === TOP_STORIES_KEY);
+    if (topS && topS.items.length) {
+      fetchCommentary(
+        buildSystemPrompt(profile.tone, profile.name, appMode),
+        buildTopStoriesPrompt(topS.items.slice(0, HEADLINES_FOR_PROMPT))
+      ).then(data => {
+        briefingData[TOP_STORIES_KEY] = { lede: data, items: topS.items, label: topS.label };
+        injectLede(TOP_STORIES_KEY, data);
+      }).catch(() => {});
+    }
+
   } catch (e) {
     console.warn('[Signal] Failed to render cached briefing:', e.message);
   } finally {
@@ -6242,6 +6272,13 @@ function buildUserPrompt(sectionLabel, items, depth) {
     `${i + 1}. ${it.title}${it.source ? ' (' + it.source + ')' : ''}`
   ).join('\n');
   return `Write a news briefing section about ${sectionLabel} based on these headlines:\n${headlines}\n\nReturn ONLY this JSON structure, nothing else:\n{\n  "highlight": "one punchy sentence — the single most important takeaway",\n  "kicker": "one short punchy sentence (omit key if nothing fits)",\n  "lede": "two to three paragraphs of analysis, 150-200 words total"\n}`;
+}
+
+function buildTopStoriesPrompt(items) {
+  const headlines = items.map((it, i) =>
+    `${i + 1}. ${it.title}${it.source ? ' (' + it.source + ')' : ''}`
+  ).join('\n');
+  return `Write a Top Stories briefing covering the most significant and most recent breaking news from these headlines:\n${headlines}\n\nPrioritize recency and importance above everything else. Cover the biggest stories across any topic. Return ONLY this JSON structure, nothing else:\n{\n  "highlight": "one sentence — the single biggest story happening right now",\n  "kicker": "one punchy sentence (omit key if nothing strong)",\n  "lede": "two to three paragraphs covering the most important breaking stories, 150-200 words total"\n}`;
 }
 
 function getMaxTokens(depth) {
