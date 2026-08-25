@@ -3264,7 +3264,7 @@ html.theme-light .fp-card-img { background: var(--surface-2); }
   </main>
 
   <footer class="app-footer">
-    Signal &middot; news from public newswires &middot; commentary by Groq Llama&nbsp;3.3 (or Pollinations) &middot; narrated by Microsoft Edge Neural TTS
+    Signal &middot; news from public newswires &middot; commentary by Groq &middot; narrated by ElevenLabs
   </footer>
 
 </div><!-- /app -->
@@ -3293,10 +3293,8 @@ const PROFILE_KEY = 'signal:profile';
 const RSS_PROXY          = '/api/rss?url=';
 const HEADLINES_PER_SECTION  = 8;
 const HEADLINES_FOR_PROMPT   = 8;
-const POLLINATIONS_URL    = 'https://text.pollinations.ai/openai';
-const POLLINATIONS_MODEL  = 'openai';
-const GROQ_MODEL          = 'openai/gpt-oss-120b';   // llama-3.3-70b-versatile deprecated 2026-08-16
-const GROQ_MODEL_RESERVE  = 'qwen/qwen3.6-27b';       // fallback; different provider for resilience
+const GROQ_MODEL         = 'llama-3.3-70b-versatile';
+const GROQ_MODEL_RESERVE = 'openai/gpt-oss-120b';  // proven working fallback
 
 // ── Environment & voice ───────────────────────────────────────
 const IS_HOSTED = window.location.protocol === 'https:';
@@ -3836,10 +3834,8 @@ function humanizeError(e) {
     return "Couldn't reach the network. Check your connection and try again.";
   if (/groq: invalid API key/i.test(msg))
     return "Your Groq API key was rejected. Open Settings and check it.";
-  if (/all LLM providers failed|pollinations failed/i.test(msg))
-    return getGroqKey()
-      ? "Both LLM providers are unreachable right now. Hit Regenerate in a moment."
-      : "The free LLM service is down. Open Settings to add a free Groq key for reliable briefings.";
+  if (/all providers failed/i.test(msg))
+    return "Groq is unreachable right now. Hit Regenerate in a moment.";
   if (/rss/i.test(msg))
     return "The news feed didn't answer. Try again in a moment.";
   return "Something hiccuped: " + msg + ". Try again.";
@@ -6234,7 +6230,7 @@ async function loadExploreTopic(key) {
 }
 
 /* ============================================================
-   SECTION 9 — LLM (Groq + Pollinations)
+   SECTION 9 — LLM (Groq)
    ============================================================ */
 
 function buildSystemPrompt(tone, name, mode, usedOpenings = []) {
@@ -6293,7 +6289,7 @@ function getMaxTokens(depth) {
 async function fetchCommentary(system, user) {
   const maxTokens = getMaxTokens(profile?.depth);
 
-  // 1. Primary Groq model — fast, high quality
+  // 1. Primary Groq model (includes one JSON-parse retry internally)
   try {
     return parseCommentary(await callGroq(system, user, maxTokens, 0, GROQ_MODEL));
   } catch (e) {
@@ -6305,13 +6301,6 @@ async function fetchCommentary(system, user) {
     return parseCommentary(await callGroq(system, user, maxTokens, 0, GROQ_MODEL_RESERVE));
   } catch (e) {
     console.warn('[Signal] Reserve Groq failed:', e.message);
-  }
-
-  // 3. Pollinations — last resort
-  try {
-    return parseCommentary(await callPollinations(system, user));
-  } catch (e) {
-    console.warn('[Signal] Pollinations failed:', e.message);
     throw new Error('all providers failed');
   }
 }
@@ -6344,7 +6333,7 @@ function parseGroqResetMs(str) {
   return ((parseInt(m[1] || '0') * 60) + parseFloat(m[2])) * 1000;
 }
 
-async function callGroq(system, user, maxTokens = 350, attempt = 0, model = GROQ_MODEL) {
+async function callGroq(system, user, maxTokens = 350, attempt = 0, model = GROQ_MODEL, parseRetried = false) {
   const res = await fetch('/api/groq', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -6354,9 +6343,9 @@ async function callGroq(system, user, maxTokens = 350, attempt = 0, model = GROQ
         { role: 'system', content: system },
         { role: 'user',   content: user },
       ],
-      temperature:     0.88,
-      max_tokens:      maxTokens,
-      response_format: { type: 'json_object' },
+      temperature: 0.88,
+      max_tokens:  maxTokens,
+      // No response_format — rely on system prompt + server-side extraction
     }),
   });
 
@@ -6373,14 +6362,13 @@ async function callGroq(system, user, maxTokens = 350, attempt = 0, model = GROQ
 
     console.warn(`[Signal] Groq ${res.status} — reset in ${Math.round(rawWait / 1000)}s (attempt ${attempt + 1}) — ${(body?.error?.message || bodyText).slice(0, 80)}`);
 
-    // If Groq needs >15s, hand off to reserve model / Pollinations now rather than blocking
     if (rawWait > 15000) {
       throw new Error(`groq: rate limited ${Math.round(rawWait / 1000)}s reset — falling back`);
     }
 
     if (attempt < 2) {
       await wait(rawWait);
-      return callGroq(system, user, maxTokens, attempt + 1, model);
+      return callGroq(system, user, maxTokens, attempt + 1, model, parseRetried);
     }
     throw new Error(`groq: rate limited after ${attempt + 1} attempts`);
   }
@@ -6398,53 +6386,30 @@ async function callGroq(system, user, maxTokens = 350, attempt = 0, model = GROQ
     console.error('[Signal] Groq: no content in response —', JSON.stringify(data).slice(0, 200));
     throw new Error('groq: no content');
   }
-  return content;
-}
 
-async function callPollinations(system, user, attempt = 0) {
-  const controller = new AbortController();
-  const tid = setTimeout(() => controller.abort(), 25000);
-  let res;
+  // Strip markdown fences and extract first { … last } substring
+  let text = content.trim()
+    .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+  const first = text.indexOf('{');
+  const last  = text.lastIndexOf('}');
+  if (first !== -1 && last > first) text = text.slice(first, last + 1);
+
+  // Validate JSON — retry once on parse failure before returning best-effort content
   try {
-    res = await fetch(POLLINATIONS_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal:  controller.signal,
-      body:    JSON.stringify({
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user',   content: user },
-        ],
-        model:   POLLINATIONS_MODEL,
-        private: true,
-        seed:    Math.floor(Math.random() * 1e9),
-      }),
-    });
-  } catch (e) {
-    clearTimeout(tid);
-    const msg = e.name === 'AbortError' ? 'timed out after 25s' : e.message;
-    console.warn(`[Signal] Pollinations fetch error: ${msg}`);
-    throw new Error('pollinations: ' + msg);
+    JSON.parse(text);
+  } catch (_) {
+    if (!parseRetried) {
+      console.warn('[Signal] Groq: JSON parse failed, retrying once');
+      await wait(1000);
+      return callGroq(system, user, maxTokens, 0, model, true);
+    }
+    // After retry still invalid — return anyway; parseCommentary handles graceful fallback
+    console.warn('[Signal] Groq: JSON parse failed after retry, returning best-effort');
   }
-  clearTimeout(tid);
 
-  if ((res.status === 429 || res.status >= 500) && attempt < 2) {
-    await wait(2000 * Math.pow(2, attempt));
-    return callPollinations(system, user, attempt + 1);
-  }
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    console.warn(`[Signal] Pollinations ${res.status} — ${body.slice(0, 150)}`);
-    throw new Error('pollinations failed: ' + res.status);
-  }
-  const data    = await res.json();
-  const content = data?.choices?.[0]?.message?.content;
-  if (!content) {
-    console.warn('[Signal] Pollinations: no content —', JSON.stringify(data).slice(0, 150));
-    throw new Error('pollinations: no content');
-  }
-  return content;
+  return text;
 }
+
 
 function cleanupLede(text) {
   let t = text.trim();

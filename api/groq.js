@@ -17,10 +17,12 @@ export default async function handler(req, res) {
   try {
     // Inject JSON-only instruction into the system message
     const body = { ...req.body };
+    // Strip any response_format the client may have sent — rely on system prompt instead
+    delete body.response_format;
     if (Array.isArray(body.messages)) {
       body.messages = body.messages.map(m =>
         m.role === 'system'
-          ? { ...m, content: m.content + '\n\nYou must return only valid JSON. No markdown, no backticks, no explanation. Raw JSON only.' }
+          ? { ...m, content: m.content + '\n\nYou must respond with only a valid JSON object. No markdown, no backticks, no explanation text before or after. Start your response with { and end with }.' }
           : m
       );
     }
@@ -42,13 +44,15 @@ export default async function handler(req, res) {
 
     const data = await upstream.json();
 
-    // Extract first { … last } from content to strip any accidental prose wrappers
-    const content = data?.choices?.[0]?.message?.content;
-    if (typeof content === 'string') {
-      const first = content.indexOf('{');
-      const last  = content.lastIndexOf('}');
+    // Strip markdown fences then extract first { … last } from content
+    const rawContent = data?.choices?.[0]?.message?.content;
+    if (typeof rawContent === 'string') {
+      let cleaned = rawContent.trim()
+        .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+      const first = cleaned.indexOf('{');
+      const last  = cleaned.lastIndexOf('}');
       if (first !== -1 && last > first) {
-        data.choices[0].message.content = content.slice(first, last + 1);
+        data.choices[0].message.content = cleaned.slice(first, last + 1);
       }
     }
 
