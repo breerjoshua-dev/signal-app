@@ -2391,52 +2391,6 @@ ol.headlines .hl-src {
   text-align: right; margin-bottom: 16px; display: none;
 }
 
-/* Today at a Glance */
-#fp-glance { margin-bottom: 24px; }
-
-.glance-card {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.glance-header {
-  font-size: 9px; font-weight: 700; letter-spacing: 0.26em;
-  text-transform: uppercase; color: var(--muted);
-  padding: 12px 16px 10px;
-  border-bottom: 1px solid var(--rule);
-}
-
-.glance-row {
-  display: flex; align-items: baseline; gap: 10px;
-  padding: 11px 16px;
-  border-bottom: 1px solid var(--rule);
-  cursor: pointer;
-  transition: background 0.15s;
-  outline: none;
-}
-.glance-row:last-child { border-bottom: none; }
-.glance-row:hover { background: var(--surface-2); }
-
-.glance-icon { font-size: 13px; flex-shrink: 0; }
-
-.glance-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--muted);
-  flex-shrink: 0; width: 120px;
-}
-
-.glance-text {
-  font-size: 13px; color: var(--ink-soft); line-height: 1.45; flex: 1;
-}
-.glance-loading { color: var(--muted); font-style: italic; }
-
-.glance-arrow {
-  font-size: 12px; color: var(--muted); flex-shrink: 0;
-  transition: color 0.15s, transform 0.15s;
-}
-.glance-row:hover .glance-arrow { color: var(--accent); transform: translateX(3px); }
 
 /* Grid cards — auto-fit so lone cards on the last row fill full width */
 .fp-grid {
@@ -2517,12 +2471,6 @@ html.theme-light .fp-card { background: var(--surface); }
 html.theme-light .fp-card-img { background: var(--surface-2); }
 
 /* ── Top Stories special styling ─────────────────────────────── */
-.glance-row-top-stories {
-  border-left: 3px solid var(--gold);
-  padding-left: 13px;
-  border-top: 1px solid rgba(240, 180, 41, 0.25);
-}
-.glance-row-top-stories .glance-label { color: var(--gold); font-size: 11px; }
 
 .fp-card-top-stories {
   grid-column: 1 / -1;
@@ -2552,6 +2500,64 @@ html.theme-light .fp-card-top-stories { background: var(--surface-2); }
 /* ============================================================
    DETAIL VIEW
    ============================================================ */
+
+/* ── Section lenses (tabbed) ─────────────────────────────────── */
+.dv-lenses {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid var(--rule);
+}
+.dv-lens-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.dv-lens-tab {
+  appearance: none;
+  border: none;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.dv-lens-tab:hover:not(.active) { background: var(--surface-3); color: var(--ink-soft); }
+.dv-lens-tab.active { background: var(--accent); color: #fff; }
+.dv-lens-panel { display: none; }
+.dv-lens-panel.active { display: block; }
+.dv-lens-bullets {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.dv-lens-bullets li {
+  display: flex; gap: 12px;
+  font-size: 15px; line-height: 1.6; color: var(--ink-soft);
+}
+.dv-lens-bullets li::before {
+  content: '→'; color: var(--accent); font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.dv-lens-text {
+  font-size: 15px; line-height: 1.7; color: var(--ink-soft); margin: 0;
+}
+.dv-lens-sides { display: flex; flex-direction: column; gap: 16px; }
+.dv-lens-side {
+  padding: 16px 18px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent-border);
+}
+.dv-lens-side-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+}
+.dv-lens-side-text { font-size: 14px; line-height: 1.65; color: var(--ink-soft); margin: 0; }
+
 #dv-view { min-height: 60vh; }
 
 .dv-wrap { max-width: 720px; margin: 0 auto; padding-bottom: 60px; }
@@ -5431,14 +5437,12 @@ function renderFrontPage(sections) {
       <div id="fp-greeting"></div>
       <div id="cache-bar" style="display:none"></div>
       <div class="fp-progress" id="fp-progress"></div>
-      <div id="fp-glance"></div>
       <div class="fp-grid" id="fp-grid"></div>
     </div>
     <div id="dv-view" style="display:none"></div>`;
 
   updateProgressIndicator();
   renderGreetingHeader(sections);
-  renderGlanceCard(sections);
 
   sections.forEach((s, i) => {
     const cardEl = document.createElement('div');
@@ -5476,40 +5480,8 @@ function renderFrontPage(sections) {
   });
 }
 
-/* ── Today at a Glance ───────────────────────────────────────── */
-function renderGlanceCard(sections) {
-  const mount = $('fp-glance');
-  if (!mount) return;
-
-  const rows = sections.map(s => {
-    const emoji    = INTEREST_EMOJI[s.key] || '·';
-    const isTop    = s.key === TOP_STORIES_KEY;
-    const rowClass = `glance-row${isTop ? ' glance-row-top-stories' : ''}`;
-    return `<div class="${rowClass}" data-key="${escapeHtml(s.key)}" role="button" tabindex="0">
-      <span class="glance-icon">${emoji}</span>
-      <span class="glance-label">${escapeHtml(s.label)}</span>
-      <span class="glance-text" id="glance-${escapeHtml(s.key)}"><span class="glance-loading">Writing…</span></span>
-      <span class="glance-arrow">→</span>
-    </div>`;
-  }).join('');
-
-  mount.innerHTML = `
-    <div class="glance-card">
-      <div class="glance-header">Today at a Glance</div>
-      ${rows}
-    </div>`;
-
-  mount.querySelectorAll('.glance-row').forEach(row => {
-    const handler = () => navigateToDetail(row.dataset.key);
-    row.addEventListener('click', handler);
-    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handler(); });
-  });
-}
-
-function updateGlanceRow(key, highlight) {
-  const el = document.getElementById(`glance-${key}`);
-  if (el && highlight) el.innerHTML = escapeHtml(highlight);
-}
+// Today at a Glance removed — updateGlanceRow kept as no-op for safe call sites
+function updateGlanceRow() {}
 
 function fpCardInnerHTML(s, isRead) {
   const d         = briefingData[s.key];
@@ -5713,6 +5685,8 @@ function renderDetailView(key) {
 
         ${srcLine ? `<div class="dv-source-line">${escapeHtml(srcLine)}</div>` : ''}
 
+        ${renderLensesHTML(ledeObj)}
+
         <div class="dv-deeper">
           <button class="dv-deeper-btn" id="dv-deeper-btn">Go deeper ⌄</button>
           <div class="dv-deeper-content" id="dv-deeper-content" hidden>
@@ -5759,8 +5733,64 @@ function renderDetailView(key) {
     btn.addEventListener('click', () => navigateToDetail(btn.dataset.key));
   });
 
+  wireLensTabs(dvView);
+
   // Sports widget if needed
   if (s.key === 'sports-business') fetchSportsWidget().catch(() => {});
+}
+
+function renderLensesHTML(ledeObj) {
+  const catchup = Array.isArray(ledeObj.quick_catchup) ? ledeObj.quick_catchup : null;
+  const matters = typeof ledeObj.why_it_matters === 'string' ? ledeObj.why_it_matters : null;
+  const context = typeof ledeObj.full_context === 'string'    ? ledeObj.full_context   : null;
+  const sides   = ledeObj.both_sides;
+
+  if (!catchup && !matters && !context && !sides) return '';
+
+  const emptyMsg = `<p class="dv-lens-text" style="color:var(--muted);font-style:italic">Not available.</p>`;
+  return `
+    <div class="dv-lenses">
+      <div class="dv-lens-tabs" role="tablist">
+        <button class="dv-lens-tab active" data-lens="catchup" role="tab" aria-selected="true">Quick Catch-up</button>
+        <button class="dv-lens-tab" data-lens="matters" role="tab" aria-selected="false">Why This Matters</button>
+        <button class="dv-lens-tab" data-lens="context" role="tab" aria-selected="false">Full Context</button>
+        <button class="dv-lens-tab" data-lens="sides" role="tab" aria-selected="false">Both Sides</button>
+      </div>
+      <div class="dv-lens-panel active" id="dv-lens-catchup">
+        ${catchup?.length
+          ? `<ul class="dv-lens-bullets">${catchup.map(b => `<li>${escapeHtml(String(b))}</li>`).join('')}</ul>`
+          : emptyMsg}
+      </div>
+      <div class="dv-lens-panel" id="dv-lens-matters">
+        ${matters ? `<p class="dv-lens-text">${escapeHtml(matters)}</p>` : emptyMsg}
+      </div>
+      <div class="dv-lens-panel" id="dv-lens-context">
+        ${context ? `<p class="dv-lens-text">${escapeHtml(context)}</p>` : emptyMsg}
+      </div>
+      <div class="dv-lens-panel" id="dv-lens-sides">
+        ${sides?.side_a || sides?.side_b
+          ? `<div class="dv-lens-sides">
+              ${sides.side_a ? `<div class="dv-lens-side"><div class="dv-lens-side-label">Perspective A</div><p class="dv-lens-side-text">${escapeHtml(sides.side_a)}</p></div>` : ''}
+              ${sides.side_b ? `<div class="dv-lens-side"><div class="dv-lens-side-label">Perspective B</div><p class="dv-lens-side-text">${escapeHtml(sides.side_b)}</p></div>` : ''}
+            </div>`
+          : emptyMsg}
+      </div>
+    </div>`;
+}
+
+function wireLensTabs(dvView) {
+  const tabs   = dvView.querySelectorAll('.dv-lens-tab');
+  const panels = dvView.querySelectorAll('.dv-lens-panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      const panel = dvView.querySelector(`#dv-lens-${tab.dataset.lens}`);
+      if (panel) panel.classList.add('active');
+    });
+  });
 }
 
 function renderDetailLedeHTML(key, ledeObj) {
@@ -6361,21 +6391,21 @@ function buildUserPrompt(sectionLabel, items, depth) {
   const headlines = items.map((it, i) =>
     `${i + 1}. ${it.title}${it.source ? ' (' + it.source + ')' : ''}`
   ).join('\n');
-  return `Write a news briefing section about ${sectionLabel} based on these headlines:\n${headlines}\n\nReturn ONLY this JSON structure, nothing else:\n{\n  "highlight": "one punchy sentence — the single most important takeaway",\n  "kicker": "one short punchy sentence (omit key if nothing fits)",\n  "lede": "two to three paragraphs of analysis, 150-200 words total"\n}`;
+  return `Write a news briefing section about ${sectionLabel} based on these headlines:\n${headlines}\n\nReturn ONLY this JSON structure, nothing else:\n{\n  "highlight": "one punchy sentence — the single most important takeaway",\n  "kicker": "one short punchy sentence (omit key if nothing fits)",\n  "lede": "two to three paragraphs of analysis, 150-200 words total",\n  "quick_catchup": ["plain-language bullet 1", "plain-language bullet 2", "plain-language bullet 3"],\n  "why_it_matters": "2-3 sentences on the broader significance and real-world implications",\n  "full_context": "one paragraph of relevant background, history, and context that frames this story",\n  "both_sides": {\n    "side_a": "one paragraph representing one perspective or position on this story",\n    "side_b": "one paragraph representing the opposing perspective or position"\n  }\n}`;
 }
 
 function buildTopStoriesPrompt(items) {
   const headlines = items.map((it, i) =>
     `${i + 1}. ${it.title}${it.source ? ' (' + it.source + ')' : ''}`
   ).join('\n');
-  return `Write a Top Stories briefing covering the most significant and most recent breaking news from these headlines:\n${headlines}\n\nPrioritize recency and importance above everything else. Cover the biggest stories across any topic. Return ONLY this JSON structure, nothing else:\n{\n  "highlight": "one sentence — the single biggest story happening right now",\n  "kicker": "one punchy sentence (omit key if nothing strong)",\n  "lede": "two to three paragraphs covering the most important breaking stories, 150-200 words total"\n}`;
+  return `Write a Top Stories briefing covering the most significant and most recent breaking news from these headlines:\n${headlines}\n\nPrioritize recency and importance above everything else. Cover the biggest stories across any topic. Return ONLY this JSON structure, nothing else:\n{\n  "highlight": "one sentence — the single biggest story happening right now",\n  "kicker": "one punchy sentence (omit key if nothing strong)",\n  "lede": "two to three paragraphs covering the most important breaking stories, 150-200 words total",\n  "quick_catchup": ["plain-language bullet 1", "plain-language bullet 2", "plain-language bullet 3"],\n  "why_it_matters": "2-3 sentences on why these stories matter today",\n  "full_context": "one paragraph of background context for the top stories",\n  "both_sides": {\n    "side_a": "one paragraph representing one perspective on the leading story",\n    "side_b": "one paragraph representing the opposing perspective"\n  }\n}`;
 }
 
 function getMaxTokens(depth) {
-  // Reasoning models (gpt-oss) consume 250-450 tokens on reasoning before writing content.
-  // Budget must cover reasoning overhead + actual JSON output.
-  if (depth === 'quick') return 1200;
-  return 1800;
+  // Reasoning models (gpt-oss) consume ~500-900 tokens on reasoning.
+  // Four lens fields add ~350 tokens of content. Budget: reasoning + lede + lenses.
+  if (depth === 'quick') return 2000;
+  return 2800;
 }
 
 async function fetchCommentary(system, user) {
