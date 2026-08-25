@@ -1984,6 +1984,35 @@ ol.headlines li {
   margin-bottom: 32px;
   flex-wrap: wrap;
 }
+.briefing-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brief60s-pill {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+  white-space: nowrap;
+}
+.brief60s-pill:hover { border-color: var(--accent-border); color: var(--ink); }
+.brief60s-pill.active {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
 .mode-toggle {
   display: inline-flex;
   background: var(--surface);
@@ -2487,6 +2516,39 @@ ol.headlines .hl-src {
 html.theme-light .fp-card { background: var(--surface); }
 html.theme-light .fp-card-img { background: var(--surface-2); }
 
+/* ── Top Stories special styling ─────────────────────────────── */
+.glance-row-top-stories {
+  border-left: 3px solid var(--gold);
+  padding-left: 13px;
+  border-top: 1px solid rgba(240, 180, 41, 0.25);
+}
+.glance-row-top-stories .glance-label { color: var(--gold); font-size: 11px; }
+
+.fp-card-top-stories {
+  grid-column: 1 / -1;
+  border: 1.5px solid rgba(240, 180, 41, 0.3);
+  background: var(--surface-2);
+  position: relative;
+}
+.fp-card-top-stories::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--gold), rgba(240,180,41,0.2) 60%, transparent);
+  border-radius: var(--radius) var(--radius) 0 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.fp-card-top-stories .fp-card-body {
+  align-items: center;
+  text-align: center;
+  padding: 32px 28px;
+}
+.fp-card-top-stories .fp-card-label { color: var(--gold); font-size: 11px; }
+.fp-card-top-stories .fp-card-preview { font-size: 1.2rem; max-width: 680px; }
+html.theme-light .fp-card-top-stories { background: var(--surface-2); }
+
 /* ============================================================
    DETAIL VIEW
    ============================================================ */
@@ -2968,7 +3030,9 @@ html.theme-light .fp-card-img { background: var(--surface-2); }
   .app-content            { padding: 28px var(--content-pad) 80px; }
   .masthead-title         { font-size: 22px; }
   .briefing-controls      { flex-direction: column; align-items: stretch; gap: 10px; }
-  .generate-btn           { text-align: center; width: 100%; }
+  .briefing-controls-right { width: 100%; }
+  .brief60s-pill          { flex: 1; justify-content: center; }
+  .generate-btn           { text-align: center; width: 100%; flex: 1; }
   .mode-toggle            { justify-content: center; }
   .audio-bar              { flex-wrap: wrap; }
   .audio-btn              { flex: 1; text-align: center; }
@@ -3222,7 +3286,13 @@ html.theme-light .fp-card-img { background: var(--surface-2); }
 
       <div class="briefing-controls">
         <div class="mode-toggle" id="mode-toggle" role="group" aria-label="Edition"></div>
-        <button id="generate-btn" class="generate-btn">Generate</button>
+        <div class="briefing-controls-right">
+          <button id="brief60s-btn" class="brief60s-pill">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            60s Brief
+          </button>
+          <button id="generate-btn" class="generate-btn">Generate</button>
+        </div>
       </div>
 
       <div id="audio-wrap" class="audio-wrap" aria-live="polite">
@@ -3230,7 +3300,6 @@ html.theme-light .fp-card-img { background: var(--surface-2); }
           <button id="play-btn"  class="audio-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><polygon points="2,1 13,7 2,13"/></svg> Play</button>
           <button id="pause-btn" class="audio-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="1" width="4" height="12" rx="1"/><rect x="8" y="1" width="4" height="12" rx="1"/></svg> Pause</button>
           <button id="stop-btn"  class="audio-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="2" width="10" height="10" rx="1.5"/></svg> Stop</button>
-          <button id="brief60s-btn" class="audio-btn audio-btn-60s"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 60s Brief</button>
           <span class="audio-label" style="margin-left:auto">Voice</span>
           <span id="current-voice-name" style="font-size:12px;color:var(--ink-soft);font-weight:500">Signal Classic</span>
         </div>
@@ -5001,14 +5070,19 @@ function showApp() {
   $('generate-btn').addEventListener('click', onGenerate);
 
 
-  // Audio controls — hidden entirely for free tier
+  // 60s Brief pill — always visible; free tier sees upgrade prompt
+  $('brief60s-btn').addEventListener('click', () => {
+    if (isFreeTier()) { showUpgradeModal(); return; }
+    toggle60sBrief();
+  });
+
+  // Audio narration controls — hidden for free tier
   if (isFreeTier()) {
     $('audio-wrap').style.display = 'none';
   } else {
     $('play-btn').addEventListener('click',  onPlay);
     $('pause-btn').addEventListener('click', onPause);
     $('stop-btn').addEventListener('click',  onStop);
-    $('brief60s-btn').addEventListener('click', toggle60sBrief);
   }
 
   // Apply saved voice name display
@@ -5390,11 +5464,12 @@ function renderFrontPage(sections) {
         </div>`;
       cardEl.addEventListener('click', showUpgradeModal);
     } else {
-      const isRead = read.includes(s.key);
-      cardEl.className = `fp-card${isRead ? ' fp-card-read' : ''}`;
-      cardEl.innerHTML = fpCardInnerHTML(s, isRead);
+      const isRead      = read.includes(s.key);
+      const isTopStories = s.key === TOP_STORIES_KEY;
+      cardEl.className  = `fp-card${isRead ? ' fp-card-read' : ''}${isTopStories ? ' fp-card-top-stories' : ''}`;
+      cardEl.innerHTML  = isTopStories ? fpTopStoriesCardInnerHTML(s) : fpCardInnerHTML(s, isRead);
       cardEl.addEventListener('click', () => navigateToDetail(s.key));
-      fetchSectionImage(s.label, s.key).catch(() => {});
+      if (!isTopStories) fetchSectionImage(s.label, s.key).catch(() => {});
     }
 
     $('fp-grid').appendChild(cardEl);
@@ -5407,8 +5482,10 @@ function renderGlanceCard(sections) {
   if (!mount) return;
 
   const rows = sections.map(s => {
-    const emoji = INTEREST_EMOJI[s.key] || '·';
-    return `<div class="glance-row" data-key="${escapeHtml(s.key)}" role="button" tabindex="0">
+    const emoji    = INTEREST_EMOJI[s.key] || '·';
+    const isTop    = s.key === TOP_STORIES_KEY;
+    const rowClass = `glance-row${isTop ? ' glance-row-top-stories' : ''}`;
+    return `<div class="${rowClass}" data-key="${escapeHtml(s.key)}" role="button" tabindex="0">
       <span class="glance-icon">${emoji}</span>
       <span class="glance-label">${escapeHtml(s.label)}</span>
       <span class="glance-text" id="glance-${escapeHtml(s.key)}"><span class="glance-loading">Writing…</span></span>
@@ -5458,12 +5535,25 @@ function fpCardInnerHTML(s, isRead) {
     </div>`;
 }
 
+function fpTopStoriesCardInnerHTML(s) {
+  const d       = briefingData[s.key];
+  const ledeObj = typeof d?.lede === 'string' ? { lede: d.lede } : (d?.lede || {});
+  const preview = ledeObj.highlight || (ledeObj.lede ? ledeObj.lede.slice(0, 160).replace(/\s\S+$/, '') + '…' : '');
+  return `
+    <div class="fp-card-body">
+      <div class="fp-card-label">🌐&nbsp;Top Stories</div>
+      ${preview ? `<div class="fp-card-preview">${escapeHtml(preview)}</div>` : '<div class="fp-card-preview fp-loading">Writing…</div>'}
+    </div>`;
+}
+
 function updateFrontPageCard(key, d) {
   const card = document.querySelector(`.fp-card[data-key="${CSS.escape(key)}"]`);
   if (!card) return;
   const s = lastSectionsWithItems.find(s => s.key === key);
   if (!s) return;
-  card.innerHTML = fpCardInnerHTML(s, getReadSections().includes(key));
+  card.innerHTML = key === TOP_STORIES_KEY
+    ? fpTopStoriesCardInnerHTML(s)
+    : fpCardInnerHTML(s, getReadSections().includes(key));
   // Update glance row with highlight
   updateGlanceRow(key, d.highlight || '');
 }
